@@ -1,103 +1,175 @@
-import Image from "next/image";
 
-export default function Home() {
+
+"use client";
+import React, { useState } from "react";
+import { generateTimeJson } from "@/lib/utils";
+
+type TimeQuestion = {
+  hhmm: string;
+  german: string;
+};
+
+const times: TimeQuestion[] = generateTimeJson() as TimeQuestion[];
+
+function getRandomTime(): TimeQuestion {
+  return times[Math.floor(Math.random() * times.length)];
+}
+
+export default function TimeQuiz() {
+  // Helper to convert 'hh:mm Uhr' to descriptive German
+  function convertDigitsToGerman(input: string): string {
+    const match = input.match(/(\d{1,2}):(\d{2}) ?uhr/i);
+    if (!match) return input;
+    const h = parseInt(match[1], 10);
+    const m = parseInt(match[2], 10);
+    // Use the same words as in generateTimeJson
+    const hourWord = h in times ? times[h * 60].german.split(' ')[0] : '';
+    const minWord = m in times ? times[m].german.split(' ')[2] : '';
+    // Fallback to lookup arrays if available
+    // If not, fallback to numbers
+    return `${hourWord || match[1]} Uhr ${minWord || match[2]}`.trim();
+  }
+  const [score, setScore] = useState(0);
+  const [current, setCurrent] = useState<TimeQuestion | null>(null);
+  React.useEffect(() => {
+    setCurrent(getRandomTime());
+  }, []);
+  const [answer, setAnswer] = useState("");
+  const [result, setResult] = useState<null | boolean>(null);
+  const [listening, setListening] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
+
+  // Minimal type for SpeechRecognition event
+  type SpeechRecognitionResultEvent = {
+    results: Array<{ [key: number]: { transcript: string } }>;
+  };
+
+  // Voice input handler
+  const handleVoice = () => {
+    // @ts-expect-error SpeechRecognition is not typed in TypeScript DOM typings
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const isFirefox = typeof navigator !== "undefined" && navigator.userAgent.toLowerCase().includes("firefox");
+    if (isFirefox) {
+      setVoiceError("Voice input is only supported in Chrome or Edge.");
+      return;
+    }
+    if (!SpeechRecognition) {
+      setVoiceError("Voice input not supported in this browser.");
+      return;
+    }
+    setVoiceError("");
+    const recognition = new SpeechRecognition();
+    recognition.lang = "de-DE";
+    recognition.onstart = () => setListening(true);
+    recognition.onresult = (event: SpeechRecognitionResultEvent) => {
+      setAnswer(event.results[0][0].transcript);
+      setListening(false);
+    };
+    recognition.onerror = () => setListening(false);
+    recognition.onend = () => setListening(false);
+    recognition.start();
+  };
+
+  const checkAnswer = () => {
+    if (!current) return;
+    // Accept both descriptive and digit-based answers
+    const normalizedAnswer = answer.trim().toLowerCase();
+    const normalizedGerman = current.german.trim().toLowerCase();
+    const converted = convertDigitsToGerman(normalizedAnswer).toLowerCase();
+    const isCorrect =
+      normalizedAnswer === normalizedGerman ||
+      converted === normalizedGerman;
+    setResult(isCorrect);
+    if (isCorrect) {
+      setScore((prev) => prev + 1);
+      setTimeout(() => {
+        setCurrent(getRandomTime());
+        setAnswer("");
+        setResult(null);
+        setVoiceError("");
+      }, 1000); // Show 'Correct!' for 1 second before next question
+    }
+  };
+
+  const nextQuestion = () => {
+    setCurrent(getRandomTime());
+    setAnswer("");
+    setResult(null);
+    setVoiceError("");
+  };
+
+  const skipQuestion = () => {
+    setCurrent(getRandomTime());
+    setAnswer("");
+    setResult(null);
+    setVoiceError("");
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex flex-col items-center gap-8 mt-16">
+      <h1 className="text-2xl font-bold">German Time Quiz</h1>
+      <div className="text-lg font-semibold">Score: {score}</div>
+      {!current ? (
+        <div className="text-lg">Loading...</div>
+      ) : (
+        <>
+          <div className="text-lg">
+            What is <span className="font-mono">{current.hhmm}</span> in German?
+          </div>
+          <input
+            className="border rounded px-3 py-2 text-lg"
+            type="text"
+            placeholder="Type your answer in German"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            disabled={listening}
+          />
+          <div className="flex gap-4">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              onClick={checkAnswer}
+              disabled={result !== null}
+            >
+              Check Answer
+            </button>
+            <button
+              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+              onClick={skipQuestion}
+              disabled={listening}
+            >
+              Skip
+            </button>
+          </div>
+          <button
+            className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+            onClick={handleVoice}
+            disabled={listening || result !== null}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            {listening ? "Listening..." : "Answer by Voice"}
+          </button>
+          {result !== null && (
+            <div className={`text-lg font-semibold ${result ? "text-green-600" : "text-red-600"}`}>
+              {result
+                ? "Correct!"
+                : `Incorrect. The correct answer is: "${current.german}"`}
+            </div>
+          )}
+          {result !== null && (
+            <button
+              className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              onClick={nextQuestion}
+              disabled={result === true}
+            >
+              Next Question
+            </button>
+          )}
+        {voiceError && (
+          <div className="mt-2 text-red-600 border border-red-400 bg-red-100 rounded px-4 py-2 text-sm">
+            {voiceError}
+          </div>
+        )}
+        </>
+      )}
     </div>
   );
 }
