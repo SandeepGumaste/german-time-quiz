@@ -3,7 +3,9 @@
 "use client";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic } from "lucide-react";
+import { Mic, MicOff, Info } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
+import { DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { generateInformalTimeJson, generateTimeJson } from "@/lib/utils";
 
 type TimeQuestion = {
@@ -18,6 +20,7 @@ const times: TimeQuestion[] = generateTimeJson() as TimeQuestion[];
 // }
 
 export default function TimeQuiz() {
+  const [open, setOpen] = useState(false);
   React.useEffect(() => {
     if (!current) {
       setCurrent(getRandomTime());
@@ -145,7 +148,7 @@ export default function TimeQuiz() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-8 mt-16">
+    <div className="flex flex-col items-center gap-8 mt-16 relative">
       <h1 className="text-2xl font-bold">German Time Quiz</h1>
       <div className="text-lg font-semibold">
         Correct: {score} &nbsp;|
@@ -204,14 +207,46 @@ export default function TimeQuiz() {
               Answer by Voice
             </Button>
           )}
-          {listening && (
+        {listening && (
             <Button
               variant="destructive"
               onClick={handleStopVoice}
+              className="flex items-center gap-2"
             >
+              <MicOff size={20} />
               Stop
             </Button>
           )}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <button
+            type="button"
+            aria-label="How to use"
+            className="fixed bottom-6 right-6 z-50 bg-red-600 border-none rounded-full shadow-lg p-3 hover:bg-red-700"
+            onClick={() => setOpen(true)}
+          >
+            <Info size={28} className="text-white" />
+          </button>
+        </DialogTrigger>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>How to use the German Time Quiz</DialogTitle>
+            <DialogDescription asChild>
+              <div>
+                <ul className="list-disc pl-5 space-y-2 text-left">
+                  <li>Choose <b>Formal</b> or <b>Informal</b> answer type below each question.</li>
+                  <li>Type your answer in German or use the green <Mic className="inline" size={18} /> <b>Answer by Voice</b> button.</li>
+                  <li>Click <b>Check Answer</b> to see if your answer is correct.</li>
+                  <li>If you don&apos;t know the answer, click <b>Skip</b> to move to the next question (this will count as skipped).</li>
+                  <li>After checking your answer, click <b>Next Question</b> to continue.</li>
+                  <li>Your <b>Correct</b>, <b>Wrong</b>, and <b>Skipped</b> scores are shown at the top.</li>
+                  <li>Use the <MicOff className="inline" size={18} /> <b>Stop</b> button to stop voice input.</li>
+                </ul>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
           <div className="flex gap-4">
             <Button
               variant="default"
