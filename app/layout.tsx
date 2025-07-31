@@ -23,7 +23,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+        <html lang="en">
+          <head>
+            <title>German Time Quiz</title>
+            <meta name="description" content="Practice German time expressions in both formal and informal styles. Answer by typing or voice, track your score, and learn interactively!" />
+            <meta property="og:title" content="German Time Quiz" />
+            <meta property="og:description" content="Practice German time expressions in both formal and informal styles. Answer by typing or voice, track your score, and learn interactively!" />
+            <meta property="og:image" content="/globe.svg" />
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content="https://german-time-quiz.vercel.app/" />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" content="German Time Quiz" />
+            <meta name="twitter:description" content="Practice German time expressions in both formal and informal styles. Answer by typing or voice, track your score, and learn interactively!" />
+            <meta name="twitter:image" content="/globe.svg" />
+          </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
