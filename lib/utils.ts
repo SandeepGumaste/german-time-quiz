@@ -39,3 +39,32 @@ export const generateTimeJson = () => {
   }
   return result;
 }
+
+// Informal German time expressions (e.g., "viertel nach drei", "halb vier")
+export const generateInformalTimeJson = () => {
+  const result: { hhmm: string; german: string }[] = [];
+  for(let h = 0; h < 24; h++) {
+    for(let m = 0; m < 60; m++) {
+      const hourStr = h.toString().padStart(2, '0');
+      const minStr = m.toString().padStart(2, '0');
+      const timeStr = `${hourStr}:${minStr}`;
+      const nextHour = (h + 1) % 24;
+      let informal = "";
+      if (m === 0) {
+        informal = `${hours[h]} Uhr`;
+      } else if (m === 15) {
+        informal = `Viertel nach ${hours[h]}`;
+      } else if (m === 30) {
+        informal = `Halb ${hours[nextHour]}`;
+      } else if (m === 45) {
+        informal = `Viertel vor ${hours[nextHour]}`;
+      } else if (m < 30) {
+        informal = `${numWords[m]} nach ${hours[h]}`;
+      } else {
+        informal = `${numWords[60 - m]} vor ${hours[nextHour]}`;
+      }
+      result.push({ hhmm: timeStr, german: informal });
+    }
+  }
+  return result;
+}
