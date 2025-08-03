@@ -86,7 +86,19 @@ export default function TimeQuiz() {
         transcript += event.results[i][0].transcript + " ";
       }
       let normalized = transcript.trim();
-      // Convert digit-based time expressions to German words
+      // Remove spaces before or after ':'
+      normalized = normalized.replace(/\s*:\s*/g, ':');
+      // Replace all occurrences of 'hh:30' (optionally with ' Uhr') with 'halb' + next hour (12-hour format)
+      normalized = normalized.replace(/(\d{1,2}):30(?: ?uhr)?/gi, (match, h) => {
+        let hour = parseInt(h, 10) + 1;
+        if (hour > 12) hour = hour - 12;
+        let halbWord = numToGermanWords(hour, 0).replace(' Uhr null', '');
+        // Special case: 00:30 should be 'halb eins' (not 'halb ein')
+        if (parseInt(h, 10) === 0 || parseInt(h, 10) === 24) {
+          halbWord = 'eins';
+        }
+        return `halb ${halbWord}`;
+      });
       // 1. '8:20', '8 20', '12:30 Uhr' => 'acht Uhr zwanzig', 'zwölf Uhr dreißig'
       let match = normalized.match(/^(\d{1,2})[ :](\d{2})(?: ?uhr)?$/i);
       if (match) {
@@ -115,20 +127,22 @@ export default function TimeQuiz() {
               const h = parseInt(match[2], 10);
               normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} nach halb ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
             } else {
-      // 5. '5 vor halb 9', '11 vor halb 10', etc. => normalize all digit-based forms to words
-      match = normalized.match(/^(\d{1,2}) ?vor halb ?(\d{1,2})$/i);
-      if (match) {
-        const m = parseInt(match[1], 10);
-        const h = parseInt(match[2], 10);
-        normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} vor halb ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
-      }
-      // 6. '5 nach halb 9', '11 nach halb 10', etc. => normalize all digit-based forms to words
-      match = normalized.match(/^(\d{1,2}) ?nach halb ?(\d{1,2})$/i);
-      if (match) {
-        const m = parseInt(match[1], 10);
-        const h = parseInt(match[2], 10);
-        normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} nach halb ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
-      }
+              // 5. '5 vor halb 9', '11 vor halb 10', etc. => normalize all digit-based forms to words
+              match = normalized.match(/^(\d{1,2}) ?vor halb ?(\d{1,2})$/i);
+              if (match) {
+                const m = parseInt(match[1], 10);
+                const h = parseInt(match[2], 10);
+                normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} vor halb ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
+              } else {
+                // 6. '11 nach 10:30' => 'elf nach halb elf'
+                match = normalized.match(/^(\d{1,2}) ?nach ?(\d{1,2}):30$/i);
+                if (match) {
+                  const m = parseInt(match[1], 10);
+                  let h = parseInt(match[2], 10) + 1; // halb refers to next hour
+                  if (h > 12) h = h - 12;
+                  normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} nach halb ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
+                }
+              }
             }
           }
         }
@@ -278,14 +292,16 @@ export default function TimeQuiz() {
           {result !== null && (
             <div className={`text-lg font-semibold ${result ? "text-green-600" : "text-red-600"}`}>
               {result ? "Correct!" : "Incorrect. The correct answers are:"}
-              <div className="text-base font-normal mt-2 mb-1">
-                {current.german.length} possible correct ways:
-              </div>
-              <ul className="list-disc pl-5">
-                {current.german.map((form, idx) => (
-                  <li key={idx}>{form}</li>
-                ))}
-              </ul>
+              <>
+                <div className="text-base font-normal mt-2 mb-1">
+                  {current.german.length} possible correct ways:
+                </div>
+                <ul className="list-disc pl-5">
+                  {current.german.map((form, idx) => (
+                    <li key={idx}>{form}</li>
+                  ))}
+                </ul>
+              </>
             </div>
           )}
           {(result === true || result === false) && (
