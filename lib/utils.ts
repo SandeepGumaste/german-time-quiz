@@ -1,3 +1,10 @@
+// Converts numeric hour/minute to German words, e.g. 3, 15 -> 'drei Uhr fünfzehn'
+export function numToGermanWords(h: number, m: number): string {
+  // Use 'ein' for hour 1, but 'eins' for minute 1
+  const hourWord = h === 1 ? 'ein' : numWords[h];
+  const minWord = numWords[m];
+  return `${hourWord} Uhr ${minWord}`;
+}
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -7,7 +14,7 @@ export function cn(...inputs: ClassValue[]) {
 
 
 const hours = [
-  "null", "eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun",
+  "null", "ein", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun",
   "zehn", "elf", "zwölf", "dreizehn", "vierzehn", "fünfzehn", "sechzehn", "siebzehn",
   "achtzehn", "neunzehn", "zwanzig", "einundzwanzig", "zweiundzwanzig", "dreiundzwanzig"
 ];
@@ -27,43 +34,71 @@ const numWords: { [key: number]: string } = {
 };
 
 export const generateTimeJson = () => {
-  const result: { hhmm: string; german: string }[] = [];
-  for(let h = 0; h < 24; h++) {
-    for(let m = 0; m < 60; m++) {
-      const hourStr = h.toString().padStart(2, '0');
-      const minStr = m.toString().padStart(2, '0');
-      const timeStr = `${hourStr}:${minStr}`;
-      const german = `${hours[h]} Uhr ${numWords[m]}`;
-      result.push({ hhmm: timeStr, german });
-    }
-  }
-  return result;
-}
-
-// Informal German time expressions (e.g., "viertel nach drei", "halb vier")
-export const generateInformalTimeJson = () => {
-  const result: { hhmm: string; german: string }[] = [];
-  for(let h = 0; h < 24; h++) {
-    for(let m = 0; m < 60; m++) {
+  const result: { hhmm: string; german: string[] }[] = [];
+  for (let h = 0; h < 24; h++) {
+    for (let m = 0; m < 60; m++) {
       const hourStr = h.toString().padStart(2, '0');
       const minStr = m.toString().padStart(2, '0');
       const timeStr = `${hourStr}:${minStr}`;
       const nextHour = (h + 1) % 24;
-      let informal = "";
+      const forms: string[] = [];
+
+      // 1. Formal/Digital: "hour Uhr minute"
       if (m === 0) {
-        informal = `${hours[h]} Uhr`;
-      } else if (m === 15) {
-        informal = `Viertel nach ${hours[h]}`;
-      } else if (m === 30) {
-        informal = `Halb ${hours[nextHour]}`;
-      } else if (m === 45) {
-        informal = `Viertel vor ${hours[nextHour]}`;
-      } else if (m < 30) {
-        informal = `${numWords[m]} nach ${hours[h]}`;
-      } else {
-        informal = `${numWords[60 - m]} vor ${hours[nextHour]}`;
+        // 7. "Uhr" without minutes (on the hour)
+        if (h === 0) {
+          forms.push("null Uhr", "Mitternacht");
+        } else if (h === 12) {
+          forms.push("zwölf Uhr", "Mittag");
+        } else {
+          forms.push(`${hours[h]} Uhr`);
+        }
       }
-      result.push({ hhmm: timeStr, german: informal });
+      forms.push(`${hours[h]} Uhr ${numWords[m]}`);
+
+
+      // 2. "nach" (past): "minute nach hour"
+      if (m > 0 && m < 30) {
+        forms.push(`${numWords[m]} nach ${numWords[h]}`);
+      }
+
+      // 3. "vor" (to): "minute vor nextHour"
+      if (m > 30 && m < 60) {
+        forms.push(`${numWords[60 - m]} vor ${numWords[nextHour]}`);
+      }
+
+      // Helper for 12-hour clock hour
+      const hour12 = (h: number) => {
+        let hr = h % 12;
+        if (hr === 0) hr = 12;
+        return numWords[hr];
+      };
+
+      // 4. "halb" (half to next hour) - use 12-hour clock
+      if (m === 30) {
+        forms.push(`halb ${hour12(nextHour)}`);
+      }
+
+      // 5. Minutes before/after half - use 12-hour clock
+      if (m > 0 && m < 30) {
+        forms.push(`${numWords[30 - m]} vor halb ${hour12(nextHour)}`); // e.g. 09:14 -> sechzehn vor halb zehn
+      }
+      if (m > 30 && m < 60) {
+        forms.push(`${numWords[m - 30]} nach halb ${hour12(nextHour)}`); // e.g. 09:34 -> vier nach halb zehn
+      }
+
+      // 6. Quartal expressions
+      if (m === 15) {
+        forms.push(`viertel nach ${hours[h]}`);
+      }
+      if (m === 45) {
+        forms.push(`viertel vor ${hours[nextHour]}`);
+        forms.push(`dreiviertel ${hours[nextHour]}`); // regional
+      }
+
+      // Remove duplicates
+      const uniqueForms = Array.from(new Set(forms));
+      result.push({ hhmm: timeStr, german: uniqueForms });
     }
   }
   return result;

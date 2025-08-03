@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Info } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { generateInformalTimeJson, generateTimeJson } from "@/lib/utils";
+import { generateTimeJson, numToGermanWords } from "@/lib/utils";
 
 type TimeQuestion = {
   hhmm: string;
-  german: string;
+  german: string[];
 };
 
 const times: TimeQuestion[] = generateTimeJson() as TimeQuestion[];
@@ -33,22 +33,13 @@ export default function TimeQuiz() {
     if (!match) return input;
     const h = parseInt(match[1], 10);
     const m = parseInt(match[2], 10);
-    // Use the same words as in generateTimeJson
-    const hourWord = h in times ? times[h * 60].german.split(' ')[0] : '';
-    const minWord = m in times ? times[m].german.split(' ')[2] : '';
-    // Fallback to lookup arrays if available
-    // If not, fallback to numbers
-    return `${hourWord || match[1]} Uhr ${minWord || match[2]}`.trim();
+    return numToGermanWords(h, m);
   }
   const [score, setScore] = useState(0);
   const [wrong, setWrong] = useState(0);
   const [skipped, setSkipped] = useState(0);
-  const [answerType, setAnswerType] = useState<'formal' | 'informal'>('formal');
   const [current, setCurrent] = useState<TimeQuestion | null>(null);
-  const timesFormal: TimeQuestion[] = generateTimeJson() as TimeQuestion[];
-  const timesInformal: TimeQuestion[] = generateInformalTimeJson() as TimeQuestion[];
   const getRandomTime = () => {
-    const times = answerType === 'formal' ? timesFormal : timesInformal;
     return times[Math.floor(Math.random() * times.length)];
   };
   // Remove useEffect that updates current question on answerType change
@@ -83,17 +74,66 @@ export default function TimeQuiz() {
     recognition.lang = "de-DE";
     recognition.continuous = true;
     recognition.interimResults = true;
+    // recognition.maxAlternatives = 5;
     recognition.onstart = () => {
       setListening(true);
       setVoiceActive(true);
     };
     recognition.onresult = (event: SpeechRecognitionResultEvent) => {
-      // Concatenate all transcripts for continuous input
+      // Concatenate all transcripts for continuous input (best alternative)
       let transcript = "";
       for (let i = 0; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript + " ";
       }
-      setAnswer(transcript.trim());
+      let normalized = transcript.trim();
+      // Convert digit-based time expressions to German words
+      // 1. '8:20', '8 20', '12:30 Uhr' => 'acht Uhr zwanzig', 'zwölf Uhr dreißig'
+      let match = normalized.match(/^(\d{1,2})[ :](\d{2})(?: ?uhr)?$/i);
+      if (match) {
+        const h = parseInt(match[1], 10);
+        const m = parseInt(match[2], 10);
+        normalized = numToGermanWords(h, m);
+      } else {
+        // 2. '20 nach 8' => 'zwanzig nach acht'
+        match = normalized.match(/^(\d{1,2}) ?nach ?(\d{1,2})$/i);
+        if (match) {
+          const m = parseInt(match[1], 10);
+          const h = parseInt(match[2], 10);
+          normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} nach ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
+        } else {
+          // 3. '20 vor 9' => 'zwanzig vor neun'
+          match = normalized.match(/^(\d{1,2}) ?vor ?(\d{1,2})$/i);
+          if (match) {
+            const m = parseInt(match[1], 10);
+            const h = parseInt(match[2], 10);
+            normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} vor ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
+          } else {
+            // 4. '5 nach halb 9' => 'fünf nach halb neun'
+            match = normalized.match(/^(\d{1,2}) ?nach halb ?(\d{1,2})$/i);
+            if (match) {
+              const m = parseInt(match[1], 10);
+              const h = parseInt(match[2], 10);
+              normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} nach halb ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
+            } else {
+      // 5. '5 vor halb 9', '11 vor halb 10', etc. => normalize all digit-based forms to words
+      match = normalized.match(/^(\d{1,2}) ?vor halb ?(\d{1,2})$/i);
+      if (match) {
+        const m = parseInt(match[1], 10);
+        const h = parseInt(match[2], 10);
+        normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} vor halb ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
+      }
+      // 6. '5 nach halb 9', '11 nach halb 10', etc. => normalize all digit-based forms to words
+      match = normalized.match(/^(\d{1,2}) ?nach halb ?(\d{1,2})$/i);
+      if (match) {
+        const m = parseInt(match[1], 10);
+        const h = parseInt(match[2], 10);
+        normalized = `${numToGermanWords(m, 0).replace(' Uhr null', '')} nach halb ${numToGermanWords(h, 0).replace(' Uhr null', '')}`;
+      }
+            }
+          }
+        }
+      }
+      setAnswer(normalized);
     };
     recognition.onerror = () => setListening(false);
     recognition.onend = () => setListening(false);
@@ -114,14 +154,10 @@ export default function TimeQuiz() {
     if (!current) return;
     // Accept both descriptive and digit-based answers
     const normalizedAnswer = answer.trim().toLowerCase();
-    const normalizedGerman = current.german.trim().toLowerCase();
-    let isCorrect = false;
-    if (answerType === 'formal') {
-      const converted = convertDigitsToGerman(normalizedAnswer).toLowerCase();
-      isCorrect = normalizedAnswer === normalizedGerman || converted === normalizedGerman;
-    } else {
-      isCorrect = normalizedAnswer === normalizedGerman;
-    }
+    const converted = convertDigitsToGerman(normalizedAnswer).toLowerCase();
+    const isCorrect = current.german.some(
+      (form) => normalizedAnswer === form.trim().toLowerCase() || converted === form.trim().toLowerCase()
+    );
     setResult(isCorrect);
     if (isCorrect) {
       setScore((prev) => prev + 1);
@@ -162,40 +198,16 @@ export default function TimeQuiz() {
           <div className="text-lg">
             What is <span className="font-mono">{current.hhmm}</span> in German?
           </div>
-          <div className="flex gap-4 mb-4">
-            <label>
-              <input
-                type="radio"
-                name="answerType"
-                value="formal"
-                checked={answerType === 'formal'}
-                onChange={() => setAnswerType('formal')}
-              /> Formal
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="answerType"
-                value="informal"
-                checked={answerType === 'informal'}
-                onChange={() => setAnswerType('informal')}
-              /> Informal
-            </label>
-          </div>
+
           <input
-            className="border rounded px-3 py-2 text-lg"
+            className="border rounded px-3 py-2 text-lg bg-gray-100 cursor-not-allowed opacity-60"
             type="text"
-            placeholder="Type your answer in German"
+            placeholder="Answer by voice only"
             value={answer}
-            onChange={(e) => {
-              const value = e.target.value;
-              // Block input if it matches hh:mm Uhr format
-              if (/^\d{1,2}:\d{2} ?uhr$/i.test(value.trim())) {
-                return;
-              }
-              setAnswer(value);
-            }}
-            disabled={listening || voiceActive}
+            disabled
+            readOnly
+            tabIndex={-1}
+            aria-disabled="true"
           />
                     {!listening && (
             <Button
@@ -234,7 +246,6 @@ export default function TimeQuiz() {
             <DialogDescription asChild>
               <div>
                 <ul className="list-disc pl-5 space-y-2 text-left">
-                  <li>Choose <b>Formal</b> or <b>Informal</b> answer type below each question.</li>
                   <li>Type your answer in German or use the green <Mic className="inline" size={18} /> <b>Answer by Voice</b> button.</li>
                   <li>Click <b>Check Answer</b> to see if your answer is correct.</li>
                   <li>If you don&apos;t know the answer, click <b>Skip</b> to move to the next question (this will count as skipped).</li>
@@ -266,28 +277,37 @@ export default function TimeQuiz() {
 
           {result !== null && (
             <div className={`text-lg font-semibold ${result ? "text-green-600" : "text-red-600"}`}>
-              {result
-                ? "Correct!"
-                : `Incorrect. The correct answer is: "${current.german}"`}
+              {result ? "Correct!" : "Incorrect. The correct answers are:"}
+              <div className="text-base font-normal mt-2 mb-1">
+                {current.german.length} possible correct ways:
+              </div>
+              <ul className="list-disc pl-5">
+                {current.german.map((form, idx) => (
+                  <li key={idx}>{form}</li>
+                ))}
+              </ul>
             </div>
           )}
-          {result === true && (
-            <Button
-              className="mt-4"
-              variant="default"
-              onClick={nextQuestion}
-            >
-              Next Question
-            </Button>
-          )}
-          {result === false && (
-            <Button
-              className="mt-4"
-              variant="default"
-              onClick={nextQuestion}
-            >
-              Next Question
-            </Button>
+          {(result === true || result === false) && (
+            <div className="flex gap-4 mt-4">
+              <Button
+                variant="default"
+                onClick={nextQuestion}
+              >
+                Next Question
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAnswer("");
+                  setResult(null);
+                  setVoiceError("");
+                  setVoiceActive(false);
+                }}
+              >
+                Try Again
+              </Button>
+            </div>
           )}
         {voiceError && (
           <div className="mt-2 text-red-600 border border-red-400 bg-red-100 rounded px-4 py-2 text-sm">
