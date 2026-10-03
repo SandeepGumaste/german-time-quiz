@@ -1,4 +1,5 @@
 import { shuffle } from "./artikel-game";
+import type { Tile } from "@/components/tile-builder";
 
 export type Sentence = {
   id: string;
@@ -104,7 +105,6 @@ export const SENTENCES: Sentence[] = RAW.map(([level, text, en, rule], i) => {
   };
 });
 
-export type Tile = { id: number; text: string };
 
 export function buildTiles(s: Sentence): Tile[] {
   const tiles = s.variants[0].map((text, id) => ({ id, text }));
@@ -117,11 +117,12 @@ export function buildTiles(s: Sentence): Tile[] {
 }
 
 // Compare the player's word order to the closest accepted variant.
-export function checkSentence(words: string[], s: Sentence) {
+export function compareToVariants(words: string[], variants: string[][]) {
   let best = { variant: 0, mismatches: [] as number[] };
   let bestCount = Infinity;
-  s.variants.forEach((v, vi) => {
-    const mismatches = words.map((w, i) => (w === v[i] ? -1 : i)).filter((i) => i >= 0);
+  variants.forEach((v, vi) => {
+    const len = Math.max(words.length, v.length);
+    const mismatches = Array.from({ length: len }, (_, i) => (words[i] === v[i] ? -1 : i)).filter((i) => i >= 0);
     if (mismatches.length < bestCount) {
       bestCount = mismatches.length;
       best = { variant: vi, mismatches };
@@ -129,6 +130,8 @@ export function checkSentence(words: string[], s: Sentence) {
   });
   return { correct: bestCount === 0, ...best };
 }
+
+export const checkSentence = (words: string[], s: Sentence) => compareToVariants(words, s.variants);
 
 // Draw from unlocked levels, favouring the newest, without repeats until the pool is used up.
 export function pickSentence(level: number, seen: Set<string>): Sentence {

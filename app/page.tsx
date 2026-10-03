@@ -6,6 +6,7 @@ const games = [
   { href: "/zahlen", title: "Numbers & Prices", blurb: "Numbers, prices, dates and years. Gets harder as you go." },
   { href: "/satzbau", title: "Sentence Builder", blurb: "Arrange word tiles into correct German sentences." },
   { href: "/verben", title: "Verb Runner", blurb: "Pick the right verb form before the runner reaches the gates." },
+  { href: "/laden", title: "German Shop", blurb: "Order groceries politely: articles, plurals, numbers and prices." },
 ];
 
 export default function Home() {

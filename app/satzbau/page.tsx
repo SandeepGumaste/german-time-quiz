@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { StatsRow } from "@/components/stats-row";
+import { TileBuilder, type Tile } from "@/components/tile-builder";
 import { accuracy, xpForCorrect } from "@/lib/artikel-game";
 import {
   CORRECT_PER_SENTENCE_LEVEL,
@@ -23,7 +24,6 @@ import {
   pickSentence,
   sentenceLevelFor,
   type Sentence,
-  type Tile,
 } from "@/lib/sentences";
 import { cn } from "@/lib/utils";
 
@@ -43,11 +43,8 @@ export default function SatzbauGame() {
   const [announced, setAnnounced] = useState(0); // last level whose rule was shown
   const [open, setOpen] = useState(false);
   const seen = useRef(new Set<string>());
-  const dragId = useRef<number | null>(null);
 
   const level = sentenceLevelFor(stats.correct);
-  const byId = (id: number) => tiles.find((t) => t.id === id)!;
-  const bank = tiles.filter((t) => !placed.includes(t.id));
   const complete = tiles.length > 0 && placed.length === tiles.length;
 
   const load = (lvl: number) => {
@@ -65,19 +62,6 @@ export default function SatzbauGame() {
     setAnnounced(0);
     load(1);
     setScreen("playing");
-  };
-
-  const add = (id: number) => !result && setPlaced((p) => (p.includes(id) ? p : [...p, id]));
-  const remove = (id: number) => !result && setPlaced((p) => p.filter((x) => x !== id));
-  // Insert `id` before `beforeId` (or at the end), moving it if it is already placed.
-  const moveTo = (id: number, beforeId?: number) => {
-    if (result || id === beforeId) return;
-    setPlaced((p) => {
-      const rest = p.filter((x) => x !== id);
-      const at = beforeId === undefined ? rest.length : rest.indexOf(beforeId);
-      rest.splice(at < 0 ? rest.length : at, 0, id);
-      return rest;
-    });
   };
 
   const check = useCallback(() => {
@@ -186,9 +170,6 @@ export default function SatzbauGame() {
     );
   }
 
-  const tileBase =
-    "px-4 py-3 min-h-12 rounded-xl border-2 text-lg font-semibold select-none transition active:scale-95";
-
   return (
     <div className="flex flex-col items-center gap-5 mt-16 relative px-4 pb-24">
       {back}
@@ -207,69 +188,7 @@ export default function SatzbauGame() {
         <>
           <div className="text-gray-600 text-center">{sentence.en}</div>
 
-          {/* Answer area */}
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => dragId.current !== null && moveTo(dragId.current)}
-            className={cn(
-              "w-full max-w-xl min-h-24 p-3 rounded-xl border-2 border-dashed flex flex-wrap gap-2 items-center",
-              result?.correct && "border-green-600 bg-green-50",
-              result && !result.correct && "border-red-400 bg-red-50"
-            )}
-          >
-            {placed.length === 0 && (
-              <span className="text-gray-400 mx-auto">Tap or drag the words here</span>
-            )}
-            {placed.map((id, i) => {
-              const wrong = result && !result.correct && result.mismatches.includes(i);
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  draggable={!result}
-                  onDragStart={() => (dragId.current = id)}
-                  onDragEnd={() => (dragId.current = null)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.stopPropagation();
-                    if (dragId.current !== null) moveTo(dragId.current, id);
-                  }}
-                  onClick={() => remove(id)}
-                  style={result?.correct ? { animationDelay: `${i * 80}ms` } : undefined}
-                  className={cn(
-                    tileBase,
-                    "bg-white border-gray-400 cursor-grab",
-                    result?.correct && "bg-green-600 border-green-700 text-white animate-in zoom-in-50 duration-300 fill-mode-both",
-                    result && !result.correct && (wrong ? "bg-red-600 border-red-700 text-white" : "bg-green-600 border-green-700 text-white"),
-                    result && "cursor-default"
-                  )}
-                >
-                  {byId(id).text}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Word bank */}
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => dragId.current !== null && remove(dragId.current)}
-            className="w-full max-w-xl min-h-20 flex flex-wrap gap-2 justify-center"
-          >
-            {bank.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                draggable={!result}
-                onDragStart={() => (dragId.current = t.id)}
-                onDragEnd={() => (dragId.current = null)}
-                onClick={() => add(t.id)}
-                className={cn(tileBase, "bg-gray-100 border-gray-300 hover:bg-gray-200 cursor-grab")}
-              >
-                {t.text}
-              </button>
-            ))}
-          </div>
+          <TileBuilder tiles={tiles} placed={placed} onChange={setPlaced} status={result} />
 
           {/* Feedback */}
           {result && (
