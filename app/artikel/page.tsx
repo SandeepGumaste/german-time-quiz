@@ -20,6 +20,9 @@ import {
   xpForCorrect,
 } from "@/lib/artikel-game";
 import { StatsRow } from "@/components/stats-row";
+import { RoundSaved } from "@/components/round-saved";
+import { useRoundReporter } from "@/lib/use-round-reporter";
+import type { Miss } from "@/lib/tracking/types";
 import { cn } from "@/lib/utils";
 
 type Mode = "practice" | "timed" | "mistakes";
@@ -41,11 +44,27 @@ export default function ArtikelGame() {
   const [queue, setQueue] = useState<Noun[]>([]);
   const [timeLeft, setTimeLeft] = useState(TIMED_SECONDS);
   const [open, setOpen] = useState(false);
+  const [roundMisses, setRoundMisses] = useState<Miss[]>([]);
   const deckRef = useRef<Noun[]>([]);
 
   // The timed round ends on its own when the clock runs out.
   const timeUp = screen === "playing" && mode === "timed" && timeLeft <= 0;
   const view: Screen = timeUp ? "results" : screen;
+
+  const buildRound = useCallback(
+    () => ({
+      game: "artikel" as const,
+      mode: mode === "timed" ? ("timed" as const) : ("practice" as const),
+      correct: stats.correct,
+      total: stats.total,
+      xp: stats.xp,
+      bestStreak: stats.best,
+      level: 1,
+      misses: roundMisses,
+    }),
+    [mode, stats, roundMisses]
+  );
+  const saved = useRoundReporter(view === "results" ? "finished" : view === "playing" ? "playing" : "idle", buildRound);
 
   const drawRandom = (last?: Noun) => {
     const { noun, deck } = nextFromDeck(deckRef.current, NOUNS, last);
@@ -56,6 +75,7 @@ export default function ArtikelGame() {
   const start = (m: Mode) => {
     setMode(m);
     setStats(EMPTY_STATS);
+    setRoundMisses([]);
     setFeedback(null);
     setTimeLeft(TIMED_SECONDS);
     if (m === "mistakes") {
@@ -87,6 +107,7 @@ export default function ArtikelGame() {
         setMistakes((m) => m.filter((n) => n !== current));
         setQueue((q) => q.filter((n) => n !== current));
       } else {
+        setRoundMisses((m) => [...m, { key: current.de, label: `${current.article} ${current.de}` }]);
         setMistakes((m) => (m.includes(current) ? m : [...m, current]));
         // Missed words go to the back of the practice queue so they come around again.
         setQueue((q) => (mode === "mistakes" ? [...q.filter((n) => n !== current), current] : q));
@@ -196,6 +217,7 @@ export default function ArtikelGame() {
         {back}
         <h1 className="text-2xl font-bold">{mode === "timed" ? "Time's up!" : cleared ? "All mistakes cleared!" : "Round over"}</h1>
         <StatsRow items={statItems(stats)} />
+        <RoundSaved saved={saved} />
         <div className="flex flex-col items-center gap-3">
           {mistakes.length > 0 && (
             <Button className="w-56" onClick={() => start("mistakes")}>

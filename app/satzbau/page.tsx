@@ -12,6 +12,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { StatsRow } from "@/components/stats-row";
+import { RoundSaved } from "@/components/round-saved";
+import { useRoundReporter } from "@/lib/use-round-reporter";
+import type { Miss } from "@/lib/tracking/types";
 import { TileBuilder, type Tile } from "@/components/tile-builder";
 import { accuracy, xpForCorrect } from "@/lib/artikel-game";
 import {
@@ -40,11 +43,27 @@ export default function SatzbauGame() {
   const [placed, setPlaced] = useState<number[]>([]); // tile ids, in sentence order
   const [result, setResult] = useState<Result | null>(null);
   const [stats, setStats] = useState<Stats>(EMPTY_STATS);
+  const [roundMisses, setRoundMisses] = useState<Miss[]>([]);
   const [announced, setAnnounced] = useState(0); // last level whose rule was shown
   const [open, setOpen] = useState(false);
   const seen = useRef(new Set<string>());
 
   const level = sentenceLevelFor(stats.correct);
+
+  const buildRound = useCallback(
+    () => ({
+      game: "satzbau" as const,
+      mode: "practice" as const,
+      correct: stats.correct,
+      total: stats.total,
+      xp: stats.xp,
+      bestStreak: stats.best,
+      level,
+      misses: roundMisses,
+    }),
+    [stats, level, roundMisses]
+  );
+  const saved = useRoundReporter(screen === "results" ? "finished" : screen === "playing" ? "playing" : "idle", buildRound);
   const complete = tiles.length > 0 && placed.length === tiles.length;
 
   const load = (lvl: number) => {
@@ -59,6 +78,7 @@ export default function SatzbauGame() {
   const start = () => {
     seen.current.clear();
     setStats(EMPTY_STATS);
+    setRoundMisses([]);
     setAnnounced(0);
     load(1);
     setScreen("playing");
@@ -69,6 +89,7 @@ export default function SatzbauGame() {
     const r = checkSentence(placed.map((id) => tiles.find((t) => t.id === id)!.text), sentence);
     setResult(r);
     setAnnounced(level);
+    if (!r.correct) setRoundMisses((m) => [...m, { key: sentence.id, label: sentence.display[0] }]);
     setStats((s) => {
       const streak = r.correct ? s.streak + 1 : 0;
       return {
@@ -160,6 +181,7 @@ export default function SatzbauGame() {
         {back}
         <h1 className="text-2xl font-bold">Round over</h1>
         <StatsRow items={statItems} />
+        <RoundSaved saved={saved} />
         <div className="text-gray-600">Reached level {level}: {LEVEL_NAMES[level]}</div>
         <div className="flex flex-col items-center gap-3">
           <Button className="w-56" onClick={start}>Play again</Button>

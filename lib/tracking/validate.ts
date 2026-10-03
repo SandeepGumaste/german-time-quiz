@@ -28,6 +28,6 @@ export function validateRound(input: unknown): ValidateResult {
   if (r.xp > r.correct * 20) return { ok: false, error: "xp too high" };
   if (r.total > r.durationSec * 2 + 5) return { ok: false, error: "answered too fast" };
   if (r.mode === "timed" && r.durationSec > 65) return { ok: false, error: "timed round too long" };
-  if (r.misses.length > r.total - r.correct + 1) return { ok: false, error: "too many misses" };
+  if (r.misses.length > (r.total - r.correct + 1) * 3) return { ok: false, error: "too many misses" };
   return { ok: true, round: r };
 }

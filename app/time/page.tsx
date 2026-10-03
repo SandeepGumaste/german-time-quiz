@@ -8,6 +8,7 @@ import { Mic, MicOff, Info } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { generateTimeJson, numToGermanWords } from "@/lib/utils";
+import { reportRound } from "@/lib/report-round";
 
 type TimeQuestion = {
   hhmm: string;
@@ -50,6 +51,30 @@ export default function TimeQuiz() {
   const [result, setResult] = useState<null | boolean>(null);
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState("");
+  // This game has no round end, so answers are reported in batches: every 10 answers, when the
+  // tab is hidden, and when leaving the page. Skips are not counted as answers.
+  const reported = React.useRef<{ correct: number; total: number; at: number } | null>(null);
+  const flush = React.useCallback(() => {
+    const now = Date.now();
+    const last = reported.current ?? { correct: 0, total: 0, at: now };
+    const total = score + wrong;
+    if (total - last.total <= 0) return;
+    reportRound({
+      game: "time", mode: "practice", correct: score - last.correct, total: total - last.total,
+      xp: 0, bestStreak: 0, level: 1, misses: [], durationSec: Math.min(3600, (now - last.at) / 1000),
+    });
+    reported.current = { correct: score, total, at: now };
+  }, [score, wrong]);
+  const flushRef = React.useRef(flush);
+  React.useEffect(() => {
+    flushRef.current = flush;
+    if (reported.current === null) reported.current = { correct: 0, total: 0, at: Date.now() };
+    if ((score + wrong) > 0 && (score + wrong) % 10 === 0) flush();
+    const onHide = () => document.visibilityState === "hidden" && flush();
+    document.addEventListener("visibilitychange", onHide);
+    return () => document.removeEventListener("visibilitychange", onHide);
+  }, [flush, score, wrong]);
+  React.useEffect(() => () => flushRef.current(), []);
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const recognitionRef = React.useRef<any>(null);
 

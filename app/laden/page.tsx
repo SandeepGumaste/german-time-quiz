@@ -12,6 +12,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { StatsRow } from "@/components/stats-row";
+import { RoundSaved } from "@/components/round-saved";
+import { useRoundReporter } from "@/lib/use-round-reporter";
+import type { Miss } from "@/lib/tracking/types";
 import { TileBuilder } from "@/components/tile-builder";
 import { accuracy, xpForCorrect } from "@/lib/artikel-game";
 import { compareToVariants } from "@/lib/sentences";
@@ -39,10 +42,26 @@ export default function GermanShop() {
   const [placed, setPlaced] = useState<number[]>([]);
   const [result, setResult] = useState<Result | null>(null);
   const [stats, setStats] = useState<Stats>(EMPTY_STATS);
+  const [roundMisses, setRoundMisses] = useState<Miss[]>([]);
   const [announced, setAnnounced] = useState(0);
   const [open, setOpen] = useState(false);
 
   const level = shopLevelFor(stats.correct);
+
+  const buildRound = useCallback(
+    () => ({
+      game: "laden" as const,
+      mode: "practice" as const,
+      correct: stats.correct,
+      total: stats.total,
+      xp: stats.xp,
+      bestStreak: stats.best,
+      level,
+      misses: roundMisses,
+    }),
+    [stats, level, roundMisses]
+  );
+  const saved = useRoundReporter(screen === "results" ? "finished" : screen === "playing" ? "playing" : "idle", buildRound);
 
   const load = (lvl: number) => {
     setOrder(buildOrder(lvl));
@@ -52,6 +71,7 @@ export default function GermanShop() {
 
   const start = () => {
     setStats(EMPTY_STATS);
+    setRoundMisses([]);
     setAnnounced(0);
     load(1);
     setScreen("playing");
@@ -63,6 +83,7 @@ export default function GermanShop() {
     const r = compareToVariants(words, order.variants);
     setResult(r);
     setAnnounced(level);
+    if (!r.correct) setRoundMisses((m) => [...m, ...order.lines.map(({ item }) => ({ key: item.de, label: `${item.gender} ${item.de}` }))]);
     setStats((s) => {
       const streak = r.correct ? s.streak + 1 : 0;
       return {
@@ -153,6 +174,7 @@ export default function GermanShop() {
         {back}
         <h1 className="text-2xl font-bold">Auf Wiedersehen!</h1>
         <StatsRow items={statItems} />
+        <RoundSaved saved={saved} />
         <div className="text-gray-600">Reached level {level}: {SHOP_LEVEL_NAMES[level]}</div>
         <div className="flex flex-col items-center gap-3">
           <Button className="w-56" onClick={start}>Shop again</Button>

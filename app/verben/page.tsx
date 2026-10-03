@@ -12,6 +12,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { StatsRow } from "@/components/stats-row";
+import { RoundSaved } from "@/components/round-saved";
+import { useRoundReporter } from "@/lib/use-round-reporter";
+import type { Miss } from "@/lib/tracking/types";
 import { accuracy, comboLevel, xpForCorrect } from "@/lib/artikel-game";
 import {
   CORRECT_PER_VERB_LEVEL,
@@ -38,12 +41,29 @@ export default function VerbRunner() {
   const [stats, setStats] = useState<Stats>(EMPTY_STATS);
   const [lives, setLives] = useState(START_LIVES);
   const [open, setOpen] = useState(false);
+  const [roundMisses, setRoundMisses] = useState<Miss[]>([]);
 
   const level = verbLevelFor(stats.correct);
   const correct = picked !== null && picked === question?.answer;
 
+  const buildRound = useCallback(
+    () => ({
+      game: "verben" as const,
+      mode: "practice" as const,
+      correct: stats.correct,
+      total: stats.total,
+      xp: stats.xp,
+      bestStreak: stats.best,
+      level,
+      misses: roundMisses,
+    }),
+    [stats, level, roundMisses]
+  );
+  const saved = useRoundReporter(screen === "results" ? "finished" : screen === "playing" ? "playing" : "idle", buildRound);
+
   const start = () => {
     setStats(EMPTY_STATS);
+    setRoundMisses([]);
     setLives(START_LIVES);
     setPicked(null);
     setQuestion(nextVerbQuestion(1));
@@ -55,7 +75,10 @@ export default function VerbRunner() {
       if (!question || picked !== null) return;
       const ok = choice === question.answer;
       setPicked(choice);
-      if (!ok) setLives((l) => l - 1);
+      if (!ok) {
+        setLives((l) => l - 1);
+        setRoundMisses((m) => [...m, { key: question.hint, label: question.hint }]);
+      }
       setStats((s) => {
         const streak = ok ? s.streak + 1 : 0;
         return {
@@ -168,6 +191,7 @@ export default function VerbRunner() {
         {back}
         <h1 className="text-2xl font-bold">Game over</h1>
         <StatsRow items={statItems} />
+        <RoundSaved saved={saved} />
         <div className="text-gray-600">Reached level {level}: {VERB_LEVEL_NAMES[level]}</div>
         <div className="flex flex-col items-center gap-3">
           <Button className="w-56" onClick={start}>Play again</Button>

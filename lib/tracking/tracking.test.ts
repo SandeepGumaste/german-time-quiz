@@ -33,7 +33,7 @@ describe("validateRound", () => {
     expect(validateRound({ ...base, durationSec: 120 }).ok).toBe(false); // timed round > 65s
   });
   it("rejects too many misses", () => {
-    const misses = Array.from({ length: 10 }, (_, i) => ({ key: `k${i}`, label: "x" }));
+    const misses = Array.from({ length: 30 }, (_, i) => ({ key: `k${i}`, label: "x" }));
     expect(validateRound({ ...base, misses }).ok).toBe(false);
   });
 });

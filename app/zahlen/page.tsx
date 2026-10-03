@@ -12,6 +12,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { StatsRow } from "@/components/stats-row";
+import { RoundSaved } from "@/components/round-saved";
+import { useRoundReporter } from "@/lib/use-round-reporter";
+import type { Miss } from "@/lib/tracking/types";
 import { TIMED_SECONDS, accuracy, comboLevel, xpForCorrect } from "@/lib/artikel-game";
 import { CORRECT_PER_LEVEL, MAX_LEVEL, levelFor, nextQuestion, type NumberQuestion } from "@/lib/german-numbers";
 import { cn } from "@/lib/utils";
@@ -21,6 +24,14 @@ type Screen = "menu" | "playing" | "results";
 type Stats = { correct: number; total: number; streak: number; best: number; xp: number };
 
 const EMPTY_STATS: Stats = { correct: 0, total: 0, streak: 0, best: 0, xp: 0 };
+const TYPE_LABELS: Record<NumberQuestion["type"], string> = {
+  small: "Numbers 0–20",
+  tens: "Numbers 21–100",
+  large: "Large numbers",
+  price: "Prices",
+  date: "Dates",
+  year: "Years",
+};
 const AUTO_ADVANCE_MS = 700;
 
 export default function ZahlenGame() {
@@ -32,6 +43,7 @@ export default function ZahlenGame() {
   const [bestScore, setBestScore] = useState(0); // best round score this session
   const [timeLeft, setTimeLeft] = useState(TIMED_SECONDS);
   const [open, setOpen] = useState(false);
+  const [roundMisses, setRoundMisses] = useState<Miss[]>([]);
 
   // The timed round ends on its own when the clock runs out.
   const timeUp = screen === "playing" && mode === "timed" && timeLeft <= 0;
@@ -39,10 +51,26 @@ export default function ZahlenGame() {
 
   const level = levelFor(stats.correct);
 
+  const buildRound = useCallback(
+    () => ({
+      game: "zahlen" as const,
+      mode,
+      correct: stats.correct,
+      total: stats.total,
+      xp: stats.xp,
+      bestStreak: stats.best,
+      level,
+      misses: roundMisses,
+    }),
+    [mode, stats, level, roundMisses]
+  );
+  const saved = useRoundReporter(view === "results" ? "finished" : view === "playing" ? "playing" : "idle", buildRound);
+
   const start = (m: Mode) => {
     setBestScore((b) => Math.max(b, stats.correct));
     setMode(m);
     setStats(EMPTY_STATS);
+    setRoundMisses([]);
     setPicked(null);
     setTimeLeft(TIMED_SECONDS);
     setQuestion(nextQuestion(1));
@@ -54,6 +82,7 @@ export default function ZahlenGame() {
       if (!question || picked !== null) return;
       const correct = choice === question.answer;
       setPicked(choice);
+      if (!correct) setRoundMisses((m) => [...m, { key: question.type, label: TYPE_LABELS[question.type] }]);
       setStats((s) => {
         const streak = correct ? s.streak + 1 : 0;
         return {
@@ -173,6 +202,7 @@ export default function ZahlenGame() {
         {back}
         <h1 className="text-2xl font-bold">{mode === "timed" ? "Time's up!" : "Round over"}</h1>
         <StatsRow items={statItems} />
+        <RoundSaved saved={saved} />
         <div className="text-gray-600">Reached level {level} of {MAX_LEVEL}</div>
         <div className="flex flex-col items-center gap-3">
           <Button className="w-56" onClick={() => start(mode)}>Play again</Button>
