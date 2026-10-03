@@ -74,3 +74,18 @@ describe("statsUpdate", () => {
     expect(statsUpdate(practice.round, now).$max).not.toHaveProperty("bestTimedScore");
   });
 });
+
+import { validateSettings } from "./profile";
+
+describe("validateSettings", () => {
+  it("accepts a normal name and trims it", () => {
+    const r = validateSettings({ displayName: "  Sandeep ", leaderboard: true });
+    expect(r.ok && r.settings.displayName).toBe("Sandeep");
+  });
+  it("rejects too short, too long, markup and bad types", () => {
+    expect(validateSettings({ displayName: "A", leaderboard: false }).ok).toBe(false);
+    expect(validateSettings({ displayName: "x".repeat(25), leaderboard: false }).ok).toBe(false);
+    expect(validateSettings({ displayName: "<b>hi</b>", leaderboard: false }).ok).toBe(false);
+    expect(validateSettings({ displayName: "Okay", leaderboard: "yes" }).ok).toBe(false);
+  });
+});
