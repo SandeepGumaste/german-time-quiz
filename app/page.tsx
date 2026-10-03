@@ -5,6 +5,7 @@ const games = [
   { href: "/artikel", title: "Der / Die / Das", blurb: "Pick the right article. Streaks, combos, timed mode." },
   { href: "/zahlen", title: "Numbers & Prices", blurb: "Numbers, prices, dates and years. Gets harder as you go." },
   { href: "/satzbau", title: "Sentence Builder", blurb: "Arrange word tiles into correct German sentences." },
+  { href: "/verben", title: "Verb Runner", blurb: "Pick the right verb form before the runner reaches the gates." },
 ];
 
 export default function Home() {
