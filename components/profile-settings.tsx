@@ -22,11 +22,11 @@ export function ProfileSettings({ displayName, leaderboard }: { displayName: str
   };
 
   return (
-    <div className="border-2 rounded-xl p-4 flex flex-col gap-3">
+    <div className="border-[3px] border-ink bg-card shadow-arcade rounded p-4 flex flex-col gap-3">
       <label className="flex flex-col gap-1 text-sm">
         Display name (2–24 characters)
         <input
-          className="border rounded px-3 py-2 text-base"
+          className="border-2 border-ink bg-card rounded px-3 py-2 text-base"
           value={name}
           maxLength={24}
           onChange={(e) => { setName(e.target.value); setStatus("idle"); }}
@@ -43,8 +43,8 @@ export function ProfileSettings({ displayName, leaderboard }: { displayName: str
       </label>
       <div className="flex items-center gap-3">
         <Button size="sm" onClick={save} disabled={status === "saving"}>Save</Button>
-        {status === "saved" && <span className="text-sm text-green-700">Saved ✓</span>}
-        {status === "error" && <span className="text-sm text-red-600">Could not save. Check the name and try again.</span>}
+        {status === "saved" && <span className="text-sm text-success">Saved ✓</span>}
+        {status === "error" && <span className="text-sm text-primary">Could not save. Check the name and try again.</span>}
       </div>
     </div>
   );

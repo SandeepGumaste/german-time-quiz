@@ -124,7 +124,7 @@ export default function GermanShop() {
         <button
           type="button"
           aria-label="How to play"
-          className="fixed bottom-6 right-6 z-50 bg-red-600 border-none rounded-full shadow-lg p-3 hover:bg-red-700"
+          className="fixed bottom-6 right-6 z-50 bg-primary border-[3px] border-ink rounded shadow-arcade p-3 hover:bg-primary/90 active:translate-x-1 active:translate-y-1 active:shadow-none"
         >
           <Info size={28} className="text-white" />
         </button>
@@ -149,7 +149,7 @@ export default function GermanShop() {
   );
 
   const back = (
-    <Link href="/" className="absolute -top-10 left-4 text-sm underline text-gray-600">
+    <Link href="/" className="absolute -top-10 left-4 text-sm underline text-muted-foreground">
       ← All games
     </Link>
   );
@@ -159,7 +159,7 @@ export default function GermanShop() {
       <div className="flex flex-col items-center gap-6 mt-16 relative px-4">
         {back}
         <h1 className="text-2xl font-bold">Der Laden 🛒</h1>
-        <p className="text-gray-600 text-center max-w-sm">
+        <p className="text-muted-foreground text-center max-w-sm">
           Step into a German shop and order what is on your list, in a polite, correct sentence.
         </p>
         <Button className="w-56" onClick={start}>Enter the shop</Button>
@@ -175,7 +175,7 @@ export default function GermanShop() {
         <h1 className="text-2xl font-bold">Auf Wiedersehen!</h1>
         <StatsRow items={statItems} />
         <RoundSaved saved={saved} />
-        <div className="text-gray-600">Reached level {level}: {SHOP_LEVEL_NAMES[level]}</div>
+        <div className="text-muted-foreground">Reached level {level}: {SHOP_LEVEL_NAMES[level]}</div>
         <div className="flex flex-col items-center gap-3">
           <Button className="w-56" onClick={start}>Shop again</Button>
           <Button className="w-56" variant="outline" onClick={() => setScreen("menu")}>Menu</Button>
@@ -192,22 +192,22 @@ export default function GermanShop() {
       {back}
       <h1 className="text-2xl font-bold">Der Laden 🛒</h1>
       <StatsRow items={statItems} />
-      <div className="text-sm text-gray-600">Level {level}/{MAX_SHOP_LEVEL}: {SHOP_LEVEL_NAMES[level]}</div>
+      <div className="text-sm text-muted-foreground">Level {level}/{MAX_SHOP_LEVEL}: {SHOP_LEVEL_NAMES[level]}</div>
       {announced !== level && (
-        <div className="max-w-md text-center text-sm bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+        <div className="max-w-md text-center text-sm bg-card border-2 border-ink rounded px-3 py-2">
           <b>Tip:</b> {SHOP_LEVEL_TIPS[level]}
         </div>
       )}
 
       {order && (
         <>
-          <div className="w-full max-w-xl rounded-2xl rounded-bl-sm bg-amber-50 border-2 border-amber-300 px-4 py-3">
-            <div className="text-xs text-amber-700 font-semibold">Verkäufer</div>
+          <div className="w-full max-w-xl rounded bg-secondary/40 border-[3px] border-ink px-4 py-3">
+            <div className="text-xs text-secondary-foreground font-semibold">Verkäufer</div>
             <div className="text-lg">Guten Tag! Was möchten Sie?</div>
           </div>
 
-          <div className="w-full max-w-xl border-2 rounded-xl px-4 py-3">
-            <div className="text-xs text-gray-600 font-semibold mb-1">Your shopping list</div>
+          <div className="w-full max-w-xl border-[3px] border-ink bg-card shadow-arcade-sm rounded px-4 py-3">
+            <div className="text-xs text-muted-foreground font-semibold mb-1">Your shopping list</div>
             <ul className="flex flex-wrap gap-x-6 gap-y-1">
               {order.lines.map(({ item, qty }) => (
                 <li key={item.de} className="text-lg">
@@ -223,23 +223,23 @@ export default function GermanShop() {
           {result && price && (
             <div
               className={cn(
-                "w-full max-w-xl rounded-xl p-4 border-2",
-                result.correct ? "border-green-600 bg-green-50 animate-in zoom-in-95 fade-in duration-300" : "border-red-400 bg-red-50"
+                "w-full max-w-xl rounded p-4 border-2",
+                result.correct ? "border-ink bg-success-soft animate-in zoom-in-95 fade-in duration-300" : "border-ink bg-danger-soft"
               )}
             >
-              <div className="text-xs font-semibold text-gray-600">Verkäufer</div>
+              <div className="text-xs font-semibold text-muted-foreground">Verkäufer</div>
               {result.correct ? (
                 <>
-                  <div className="text-lg font-semibold text-green-700">Gerne! Das macht {price.digits}.</div>
-                  <div className="text-gray-700">{price.german}</div>
+                  <div className="text-lg font-semibold text-success">Gerne! Das macht {price.digits}.</div>
+                  <div className="text-muted-foreground">{price.german}</div>
                 </>
               ) : (
                 <>
-                  <div className="text-lg font-semibold text-red-700">Wie bitte? Try:</div>
+                  <div className="text-lg font-semibold text-primary">Wie bitte? Try:</div>
                   <div className="text-xl font-bold">{order.display}</div>
                 </>
               )}
-              <ul className="mt-2 text-sm text-gray-700 space-y-0.5">
+              <ul className="mt-2 text-sm text-muted-foreground space-y-0.5">
                 {order.notes.map((n) => (
                   <li key={n}>💡 {n}</li>
                 ))}

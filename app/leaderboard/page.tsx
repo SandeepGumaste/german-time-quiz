@@ -20,22 +20,22 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
           <Link
             key={id}
             href={`/leaderboard?game=${id}`}
-            className={cn("rounded-full border-2 px-3 py-1 text-sm", id === game ? "bg-black text-white border-black" : "hover:bg-gray-100")}
+            className={cn("rounded-full border-2 px-3 py-1 text-sm", id === game ? "bg-ink text-background" : "hover:bg-accent")}
           >
             {GAME_NAMES[id]}
           </Link>
         ))}
       </nav>
-      <p className="text-sm text-gray-600 text-center max-w-sm">
+      <p className="text-sm text-muted-foreground text-center max-w-sm">
         {boardField(game) === "bestTimedScore" ? "Best score in a 60-second timed round." : "Best score in a single round."} Only players who opted in are shown.
       </p>
       {rows.length === 0 ? (
-        <p className="text-gray-600">No scores yet. Be the first!</p>
+        <p className="text-muted-foreground">No scores yet. Be the first!</p>
       ) : (
         <ol className="w-full max-w-sm">
           {rows.map((r, i) => (
             <li key={`${r.displayName}-${i}`} className="flex justify-between border-t py-2">
-              <span><span className="inline-block w-8 text-gray-500">{i + 1}.</span>{r.displayName}</span>
+              <span><span className="inline-block w-8 text-muted-foreground">{i + 1}.</span>{r.displayName}</span>
               <span className="font-bold">{r.score}</span>
             </li>
           ))}

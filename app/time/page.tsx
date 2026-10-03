@@ -222,7 +222,7 @@ export default function TimeQuiz() {
 
   return (
     <div className="flex flex-col items-center gap-8 mt-16 relative">
-      <Link href="/" className="absolute -top-10 left-4 text-sm underline text-gray-600">← All games</Link>
+      <Link href="/" className="absolute -top-10 left-4 text-sm underline text-muted-foreground">← All games</Link>
       <h1 className="text-2xl font-bold">German Time Quiz</h1>
       <div className="text-lg font-semibold">
         Correct: {score} &nbsp;|
@@ -238,7 +238,7 @@ export default function TimeQuiz() {
           </div>
 
           <input
-            className="border rounded px-3 py-2 text-lg bg-gray-100 cursor-not-allowed opacity-60"
+            className="border-2 border-ink rounded px-3 py-2 text-lg bg-muted cursor-not-allowed opacity-60"
             type="text"
             placeholder="Answer by voice only"
             value={answer}
@@ -249,7 +249,7 @@ export default function TimeQuiz() {
           />
                     {!listening && (
             <Button
-              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+              className="bg-success text-white flex items-center gap-2"
               onClick={handleVoice}
               disabled={listening || result !== null}
             >
@@ -272,7 +272,7 @@ export default function TimeQuiz() {
           <button
             type="button"
             aria-label="How to use"
-            className="fixed bottom-6 right-6 z-50 bg-red-600 border-none rounded-full shadow-lg p-3 hover:bg-red-700"
+            className="fixed bottom-6 right-6 z-50 bg-primary border-[3px] border-ink rounded shadow-arcade p-3 hover:bg-primary/90 active:translate-x-1 active:translate-y-1 active:shadow-none"
             onClick={() => setOpen(true)}
           >
             <Info size={28} className="text-white" />
@@ -314,7 +314,7 @@ export default function TimeQuiz() {
           </div>
 
           {result !== null && (
-            <div className={`text-lg font-semibold ${result ? "text-green-600" : "text-red-600"}`}>
+            <div className={`text-lg font-semibold ${result ? "text-success" : "text-primary"}`}>
               {result ? "Correct!" : "Incorrect. The correct answers are:"}
               <>
                 <div className="text-base font-normal mt-2 mb-1">
@@ -349,7 +349,7 @@ export default function TimeQuiz() {
             </div>
           )}
         {voiceError && (
-          <div className="mt-2 text-red-600 border border-red-400 bg-red-100 rounded px-4 py-2 text-sm">
+          <div className="mt-2 text-primary border-2 border-ink bg-danger-soft rounded px-4 py-2 text-sm">
             {voiceError}
           </div>
         )}

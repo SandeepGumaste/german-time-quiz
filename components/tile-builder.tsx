@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export type Tile = { id: number; text: string };
 export type TileStatus = { correct: boolean; mismatches: number[] } | null;
 
-const tileBase = "px-4 py-3 min-h-12 rounded-xl border-2 text-lg font-semibold select-none transition active:scale-95";
+const tileBase = "px-4 py-3 min-h-12 rounded border-2 text-lg font-semibold select-none transition active:scale-95";
 
 // Word tiles you can tap (add/remove) or drag (add, reorder, remove).
 export function TileBuilder({
@@ -41,12 +41,12 @@ export function TileBuilder({
         onDragOver={(e) => e.preventDefault()}
         onDrop={() => dragId.current !== null && moveTo(dragId.current)}
         className={cn(
-          "w-full max-w-xl min-h-24 p-3 rounded-xl border-2 border-dashed flex flex-wrap gap-2 items-center",
-          status?.correct && "border-green-600 bg-green-50",
-          status && !status.correct && "border-red-400 bg-red-50"
+          "w-full max-w-xl min-h-24 p-3 rounded border-2 border-dashed flex flex-wrap gap-2 items-center",
+          status?.correct && "border-ink bg-success-soft",
+          status && !status.correct && "border-ink bg-danger-soft"
         )}
       >
-        {placed.length === 0 && <span className="text-gray-400 mx-auto">Tap or drag the words here</span>}
+        {placed.length === 0 && <span className="text-muted-foreground mx-auto">Tap or drag the words here</span>}
         {placed.map((id, i) => {
           const wrong = status && !status.correct && status.mismatches.includes(i);
           return (
@@ -65,9 +65,9 @@ export function TileBuilder({
               style={status?.correct ? { animationDelay: `${i * 80}ms` } : undefined}
               className={cn(
                 tileBase,
-                "bg-white border-gray-400 cursor-grab",
-                status?.correct && "bg-green-600 border-green-700 text-white animate-in zoom-in-50 duration-300 fill-mode-both",
-                status && !status.correct && (wrong ? "bg-red-600 border-red-700 text-white" : "bg-green-600 border-green-700 text-white"),
+                "bg-card border-ink shadow-arcade-sm cursor-grab",
+                status?.correct && "bg-success border-ink text-white animate-in zoom-in-50 duration-300 fill-mode-both",
+                status && !status.correct && (wrong ? "bg-primary border-ink text-white" : "bg-success border-ink text-white"),
                 locked && "cursor-default"
               )}
             >
@@ -90,7 +90,7 @@ export function TileBuilder({
             onDragStart={() => (dragId.current = t.id)}
             onDragEnd={() => (dragId.current = null)}
             onClick={() => add(t.id)}
-            className={cn(tileBase, "bg-gray-100 border-gray-300 hover:bg-gray-200 cursor-grab")}
+            className={cn(tileBase, "bg-accent border-ink hover:bg-muted cursor-grab")}
           >
             {t.text}
           </button>

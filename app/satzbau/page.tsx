@@ -123,7 +123,7 @@ export default function SatzbauGame() {
         <button
           type="button"
           aria-label="How to play"
-          className="fixed bottom-6 right-6 z-50 bg-red-600 border-none rounded-full shadow-lg p-3 hover:bg-red-700"
+          className="fixed bottom-6 right-6 z-50 bg-primary border-[3px] border-ink rounded shadow-arcade p-3 hover:bg-primary/90 active:translate-x-1 active:translate-y-1 active:shadow-none"
         >
           <Info size={28} className="text-white" />
         </button>
@@ -148,7 +148,7 @@ export default function SatzbauGame() {
   );
 
   const back = (
-    <Link href="/" className="absolute -top-10 left-4 text-sm underline text-gray-600">
+    <Link href="/" className="absolute -top-10 left-4 text-sm underline text-muted-foreground">
       ← All games
     </Link>
   );
@@ -166,7 +166,7 @@ export default function SatzbauGame() {
       <div className="flex flex-col items-center gap-6 mt-16 relative px-4">
         {back}
         <h1 className="text-2xl font-bold">Satzbau</h1>
-        <p className="text-gray-600 text-center max-w-sm">
+        <p className="text-muted-foreground text-center max-w-sm">
           Put the words in the right order to build German sentences. Start simple, and learn the word-order rules as you go.
         </p>
         <Button className="w-56" onClick={start}>Start</Button>
@@ -182,7 +182,7 @@ export default function SatzbauGame() {
         <h1 className="text-2xl font-bold">Round over</h1>
         <StatsRow items={statItems} />
         <RoundSaved saved={saved} />
-        <div className="text-gray-600">Reached level {level}: {LEVEL_NAMES[level]}</div>
+        <div className="text-muted-foreground">Reached level {level}: {LEVEL_NAMES[level]}</div>
         <div className="flex flex-col items-center gap-3">
           <Button className="w-56" onClick={start}>Play again</Button>
           <Button className="w-56" variant="outline" onClick={() => setScreen("menu")}>Menu</Button>
@@ -197,18 +197,18 @@ export default function SatzbauGame() {
       {back}
       <h1 className="text-2xl font-bold">Satzbau</h1>
       <StatsRow items={statItems} />
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-muted-foreground">
         Level {level}/{MAX_SENTENCE_LEVEL}: {LEVEL_NAMES[level]}
       </div>
       {announced !== level && (
-        <div className="max-w-md text-center text-sm bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+        <div className="max-w-md text-center text-sm bg-card border-2 border-ink rounded px-3 py-2">
           <b>New:</b> {LEVEL_RULES[level]}
         </div>
       )}
 
       {sentence && (
         <>
-          <div className="text-gray-600 text-center">{sentence.en}</div>
+          <div className="text-muted-foreground text-center">{sentence.en}</div>
 
           <TileBuilder tiles={tiles} placed={placed} onChange={setPlaced} status={result} />
 
@@ -216,17 +216,17 @@ export default function SatzbauGame() {
           {result && (
             <div
               className={cn(
-                "w-full max-w-xl text-center rounded-xl p-4 border-2",
+                "w-full max-w-xl text-center rounded p-4 border-2",
                 result.correct
-                  ? "border-green-600 bg-green-50 animate-in zoom-in-95 fade-in duration-300"
-                  : "border-red-400 bg-red-50"
+                  ? "border-ink bg-success-soft animate-in zoom-in-95 fade-in duration-300"
+                  : "border-ink bg-danger-soft"
               )}
             >
               {result.correct ? (
-                <div className="text-xl font-bold text-green-700">Richtig! ✓</div>
+                <div className="text-xl font-bold text-success">Richtig! ✓</div>
               ) : (
                 <>
-                  <div className="font-semibold text-red-700">Not quite. The correct sentence is:</div>
+                  <div className="font-semibold text-primary">Not quite. The correct sentence is:</div>
                   {sentence.display.map((d) => (
                     <div key={d} className="text-xl font-bold mt-1">{d}</div>
                   ))}
@@ -234,7 +234,7 @@ export default function SatzbauGame() {
               )}
               {result.correct && <div className="text-lg font-semibold mt-1">{sentence.display[result.variant]}</div>}
               {(!result.correct || sentence.level > 1) && (
-                <div className="text-sm text-gray-700 mt-2">💡 {sentence.rule}</div>
+                <div className="text-sm text-muted-foreground mt-2">💡 {sentence.rule}</div>
               )}
             </div>
           )}

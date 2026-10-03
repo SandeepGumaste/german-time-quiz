@@ -9,7 +9,7 @@ function AuthMenu() {
   if (!session?.user) {
     return (
       <div className="flex items-center gap-3 text-sm">
-        <Link href="/leaderboard" className="underline">Leaderboard</Link>
+        <Link href="/leaderboard" className="font-mono text-xs font-bold uppercase hover:underline">Leaderboard</Link>
         <Button size="sm" variant="outline" onClick={() => signIn("google")}>
           Sign in
         </Button>
@@ -19,10 +19,10 @@ function AuthMenu() {
   return (
     <div className="flex items-center gap-3 text-sm">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {session.user.image && <img src={session.user.image} alt="" className="h-7 w-7 rounded-full" />}
-      <Link href="/leaderboard" className="underline">Leaderboard</Link>
-      <Link href="/profile" className="underline">Profile</Link>
-      <button type="button" className="underline text-gray-600" onClick={() => signOut()}>
+      {session.user.image && <img src={session.user.image} alt="" className="h-7 w-7 rounded border-2 border-ink" />}
+      <Link href="/leaderboard" className="font-mono text-xs font-bold uppercase hover:underline">Leaderboard</Link>
+      <Link href="/profile" className="font-mono text-xs font-bold uppercase hover:underline">Profile</Link>
+      <button type="button" className="font-mono text-xs font-bold uppercase text-muted-foreground hover:underline" onClick={() => signOut()}>
         Sign out
       </button>
     </div>
@@ -33,8 +33,14 @@ function AuthMenu() {
 export function AuthHeader({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <header className="flex justify-end px-4 pt-3 min-h-11">
-        <AuthMenu />
+      <header className="sticky top-0 z-40 border-b-[3px] border-ink bg-sidebar">
+        <div className="mx-auto flex min-h-14 w-full max-w-[1120px] items-center justify-between gap-3 px-4 lg:px-8">
+          <Link href="/" className="flex items-center gap-2 font-mono font-bold uppercase tracking-tight">
+            <span className="border-2 border-ink bg-primary px-1.5 text-primary-foreground arcade-shadow-sm">16B</span>
+            <span className="hidden sm:inline">German Games</span>
+          </Link>
+          <AuthMenu />
+        </div>
       </header>
       {children}
     </SessionProvider>

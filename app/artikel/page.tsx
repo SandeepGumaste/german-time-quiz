@@ -163,7 +163,7 @@ export default function ArtikelGame() {
         <button
           type="button"
           aria-label="How to play"
-          className="fixed bottom-6 right-6 z-50 bg-red-600 border-none rounded-full shadow-lg p-3 hover:bg-red-700"
+          className="fixed bottom-6 right-6 z-50 bg-primary border-[3px] border-ink rounded shadow-arcade p-3 hover:bg-primary/90 active:translate-x-1 active:translate-y-1 active:shadow-none"
         >
           <Info size={28} className="text-white" />
         </button>
@@ -188,7 +188,7 @@ export default function ArtikelGame() {
   );
 
   const back = (
-    <Link href="/" className="absolute -top-10 left-4 text-sm underline text-gray-600">
+    <Link href="/" className="absolute -top-10 left-4 text-sm underline text-muted-foreground">
       ← All games
     </Link>
   );
@@ -198,7 +198,7 @@ export default function ArtikelGame() {
       <div className="flex flex-col items-center gap-6 mt-16 relative px-4">
         {back}
         <h1 className="text-2xl font-bold">Der / Die / Das</h1>
-        <p className="text-gray-600 text-center max-w-sm">
+        <p className="text-muted-foreground text-center max-w-sm">
           Pick the right article for each German noun. Build streaks, earn XP.
         </p>
         <Button className="w-56" onClick={() => start("practice")}>Practice (no timer)</Button>
@@ -241,18 +241,18 @@ export default function ArtikelGame() {
       <StatsRow items={statItems(stats)} />
       <div className="flex items-center gap-4 h-8">
         {mode === "timed" && (
-          <span className={cn("flex items-center gap-1 font-mono text-lg", timeLeft <= 10 && "text-red-600")}>
+          <span className={cn("flex items-center gap-1 font-mono text-lg", timeLeft <= 10 && "text-primary")}>
             <Timer size={18} /> {Math.max(timeLeft, 0)}s
           </span>
         )}
-        {mode === "mistakes" && <span className="text-sm text-gray-600">Mistakes left: {queue.length}</span>}
+        {mode === "mistakes" && <span className="text-sm text-muted-foreground">Mistakes left: {queue.length}</span>}
         {combo !== "none" && (
           <span
             className={cn(
-              "flex items-center gap-1 rounded-full px-3 py-1 font-bold text-white",
+              "flex items-center gap-1 rounded border-2 border-ink px-3 py-1 font-mono font-bold text-white",
               combo === "strong"
-                ? "bg-orange-600 text-lg animate-pulse shadow-lg shadow-orange-400"
-                : "bg-orange-400 text-sm"
+                ? "bg-primary text-lg animate-pulse shadow-arcade"
+                : "bg-secondary text-secondary-foreground text-sm"
             )}
           >
             <Flame size={combo === "strong" ? 22 : 16} />
@@ -275,10 +275,10 @@ export default function ArtikelGame() {
                   disabled={!!feedback}
                   onClick={() => answer(a)}
                   className={cn(
-                    "w-24 sm:w-28 py-5 rounded-xl border-2 text-2xl font-bold uppercase transition",
-                    !feedback && "bg-white hover:bg-gray-100 border-gray-300",
-                    isAnswer && "bg-green-600 border-green-700 text-white",
-                    isWrongPick && "bg-red-600 border-red-700 text-white",
+                    "w-24 sm:w-28 py-5 rounded border-2 text-2xl font-bold uppercase transition",
+                    !feedback && "bg-card hover:bg-accent border-ink shadow-arcade-sm",
+                    isAnswer && "bg-success border-ink text-white",
+                    isWrongPick && "bg-primary border-ink text-white",
                     feedback && !isAnswer && !isWrongPick && "opacity-40"
                   )}
                 >
@@ -291,13 +291,13 @@ export default function ArtikelGame() {
           <div className="h-28 text-center">
             {feedback && (
               <>
-                <div className={cn("text-lg font-semibold", feedback.correct ? "text-green-600" : "text-red-600")}>
+                <div className={cn("text-lg font-semibold", feedback.correct ? "text-success" : "text-primary")}>
                   {feedback.correct ? "Richtig!" : "Not quite. The correct article is:"}
                 </div>
                 <div className="text-3xl font-bold mt-1">
                   {current.article} {current.de}
                 </div>
-                <div className="text-gray-600">{current.en}</div>
+                <div className="text-muted-foreground">{current.en}</div>
               </>
             )}
           </div>

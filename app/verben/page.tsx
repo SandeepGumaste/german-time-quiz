@@ -142,7 +142,7 @@ export default function VerbRunner() {
         <button
           type="button"
           aria-label="How to play"
-          className="fixed bottom-6 right-6 z-50 bg-red-600 border-none rounded-full shadow-lg p-3 hover:bg-red-700"
+          className="fixed bottom-6 right-6 z-50 bg-primary border-[3px] border-ink rounded shadow-arcade p-3 hover:bg-primary/90 active:translate-x-1 active:translate-y-1 active:shadow-none"
         >
           <Info size={28} className="text-white" />
         </button>
@@ -166,7 +166,7 @@ export default function VerbRunner() {
   );
 
   const back = (
-    <Link href="/" className="absolute -top-10 left-4 text-sm underline text-gray-600">
+    <Link href="/" className="absolute -top-10 left-4 text-sm underline text-muted-foreground">
       ← All games
     </Link>
   );
@@ -176,7 +176,7 @@ export default function VerbRunner() {
       <div className="flex flex-col items-center gap-6 mt-16 relative px-4">
         {back}
         <h1 className="text-2xl font-bold">Verb Runner</h1>
-        <p className="text-gray-600 text-center max-w-sm">
+        <p className="text-muted-foreground text-center max-w-sm">
           Pick the right verb form before the runner reaches the gates. Three lives, and it gets faster.
         </p>
         <Button className="w-56" onClick={start}>Start</Button>
@@ -192,7 +192,7 @@ export default function VerbRunner() {
         <h1 className="text-2xl font-bold">Game over</h1>
         <StatsRow items={statItems} />
         <RoundSaved saved={saved} />
-        <div className="text-gray-600">Reached level {level}: {VERB_LEVEL_NAMES[level]}</div>
+        <div className="text-muted-foreground">Reached level {level}: {VERB_LEVEL_NAMES[level]}</div>
         <div className="flex flex-col items-center gap-3">
           <Button className="w-56" onClick={start}>Play again</Button>
           <Button className="w-56" variant="outline" onClick={() => setScreen("menu")}>Menu</Button>
@@ -208,17 +208,17 @@ export default function VerbRunner() {
       <h1 className="text-2xl font-bold">Verb Runner</h1>
       <StatsRow items={statItems} />
       <div className="flex items-center gap-4 h-8">
-        <span className="text-sm text-gray-600">Level {level}/{MAX_VERB_LEVEL}: {VERB_LEVEL_NAMES[level]}</span>
+        <span className="text-sm text-muted-foreground">Level {level}/{MAX_VERB_LEVEL}: {VERB_LEVEL_NAMES[level]}</span>
         <span className="flex gap-1" aria-label={`${lives} lives left`}>
           {Array.from({ length: START_LIVES }, (_, i) => (
-            <Heart key={i} size={20} className={i < lives ? "text-red-600 fill-red-600" : "text-gray-300"} />
+            <Heart key={i} size={20} className={i < lives ? "text-primary fill-primary" : "text-muted-foreground"} />
           ))}
         </span>
         {combo !== "none" && (
           <span
             className={cn(
-              "flex items-center gap-1 rounded-full px-3 py-1 font-bold text-white",
-              combo === "strong" ? "bg-orange-600 animate-pulse shadow-lg shadow-orange-400" : "bg-orange-400 text-sm"
+              "flex items-center gap-1 rounded border-2 border-ink px-3 py-1 font-mono font-bold text-white",
+              combo === "strong" ? "bg-primary animate-pulse shadow-arcade" : "bg-secondary text-secondary-foreground text-sm"
             )}
           >
             <Flame size={combo === "strong" ? 20 : 16} /> x{stats.streak}
@@ -230,15 +230,15 @@ export default function VerbRunner() {
         <>
           <div className="text-2xl sm:text-3xl font-bold text-center max-w-xl">
             {question.before}{" "}
-            <span className={cn("inline-block min-w-24 border-b-4 px-1", picked === null ? "border-gray-400 text-transparent" : correct ? "border-green-600 text-green-600" : "border-red-600 text-red-600")}>
+            <span className={cn("inline-block min-w-24 border-b-4 px-1", picked === null ? "border-ink text-transparent" : correct ? "border-success text-success" : "border-primary text-primary")}>
               {picked === null ? "___" : question.answer}
             </span>
             {question.after}
           </div>
-          <div className="text-sm text-gray-600">({question.hint})</div>
+          <div className="text-sm text-muted-foreground">({question.hint})</div>
 
           {/* Track: the runner crosses it, and the finish line is the gates. */}
-          <div className="relative w-full max-w-xl h-12 border-b-4 border-gray-300">
+          <div className="relative w-full max-w-xl h-12 border-b-4 border-ink">
             <span
               key={question.id}
               className="absolute bottom-0 text-3xl"
@@ -263,10 +263,10 @@ export default function VerbRunner() {
                   disabled={picked !== null}
                   onClick={() => resolve(c)}
                   className={cn(
-                    "py-5 px-2 rounded-xl border-2 text-lg sm:text-xl font-bold transition break-words",
-                    picked === null && "bg-white hover:bg-gray-100 border-gray-400",
-                    isAnswer && "bg-green-600 border-green-700 text-white",
-                    isWrongPick && "bg-red-600 border-red-700 text-white",
+                    "py-5 px-2 rounded border-2 text-lg sm:text-xl font-bold transition break-words",
+                    picked === null && "bg-card hover:bg-accent border-ink shadow-arcade-sm",
+                    isAnswer && "bg-success border-ink text-white",
+                    isWrongPick && "bg-primary border-ink text-white",
                     picked !== null && !isAnswer && !isWrongPick && "opacity-40"
                   )}
                 >
@@ -277,8 +277,8 @@ export default function VerbRunner() {
             })}
           </div>
           <div className="h-6 text-center font-semibold">
-            {picked === TIMEOUT && <span className="text-red-600">Too slow!</span>}
-            {correct && <span className="text-green-600">Richtig!</span>}
+            {picked === TIMEOUT && <span className="text-primary">Too slow!</span>}
+            {correct && <span className="text-success">Richtig!</span>}
           </div>
         </>
       )}

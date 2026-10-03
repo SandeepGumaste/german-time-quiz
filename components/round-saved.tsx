@@ -6,13 +6,13 @@ import type { ReportResult } from "@/lib/report-round";
 export function RoundSaved({ saved }: { saved: ReportResult }) {
   const { status } = useSession();
   if (status === "unauthenticated") {
-    return <div className="text-sm text-gray-600">Sign in (top right) to save your progress.</div>;
+    return <div className="text-sm text-muted-foreground">Sign in (top right) to save your progress.</div>;
   }
   if (!saved) return null;
   return (
     <div className="text-sm text-center">
-      <div className="text-green-700 font-semibold">Saved ✓ · 🔥 {saved.streak.current}-day streak</div>
-      {saved.newBests.length > 0 && <div className="text-orange-600 font-bold">New personal best!</div>}
+      <div className="text-success font-semibold">Saved ✓ · 🔥 {saved.streak.current}-day streak</div>
+      {saved.newBests.length > 0 && <div className="text-secondary-foreground font-bold">New personal best!</div>}
     </div>
   );
 }

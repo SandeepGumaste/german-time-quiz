@@ -22,20 +22,20 @@ export default async function ProfilePage() {
       <h1 className="text-2xl font-bold">{profile.displayName}</h1>
 
       <div className="flex gap-6 text-center">
-        <div><div className="text-2xl font-bold">🔥 {profile.streak?.current ?? 0}</div><div className="text-xs text-gray-600">Day streak</div></div>
-        <div><div className="text-2xl font-bold">{profile.streak?.best ?? 0}</div><div className="text-xs text-gray-600">Best streak</div></div>
-        <div><div className="text-2xl font-bold">{totalXp}</div><div className="text-xs text-gray-600">Total XP</div></div>
-        <div><div className="text-2xl font-bold">{totalRounds}</div><div className="text-xs text-gray-600">Rounds</div></div>
+        <div><div className="text-2xl font-bold">🔥 {profile.streak?.current ?? 0}</div><div className="text-xs text-muted-foreground">Day streak</div></div>
+        <div><div className="text-2xl font-bold">{profile.streak?.best ?? 0}</div><div className="text-xs text-muted-foreground">Best streak</div></div>
+        <div><div className="text-2xl font-bold">{totalXp}</div><div className="text-xs text-muted-foreground">Total XP</div></div>
+        <div><div className="text-2xl font-bold">{totalRounds}</div><div className="text-xs text-muted-foreground">Rounds</div></div>
       </div>
 
       <section className="w-full max-w-2xl">
         <h2 className="font-semibold mb-2">Your games</h2>
         {profile.stats.length === 0 ? (
-          <p className="text-gray-600 text-sm">No rounds saved yet. <Link href="/" className="underline">Play a game</Link> and it will show up here.</p>
+          <p className="text-muted-foreground text-sm">No rounds saved yet. <Link href="/" className="underline">Play a game</Link> and it will show up here.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="text-gray-600">
+              <thead className="text-muted-foreground">
                 <tr><th className="py-1 pr-3">Game</th><th className="pr-3">Rounds</th><th className="pr-3">Best</th><th className="pr-3">Accuracy</th><th className="pr-3">XP</th><th>Level</th></tr>
               </thead>
               <tbody>
@@ -61,8 +61,8 @@ export default async function ProfilePage() {
           <ul className="text-sm space-y-1">
             {profile.weakSpots.map((w) => (
               <li key={`${w.game}-${w.label}`} className="flex justify-between border-t py-1">
-                <span>{w.label} <span className="text-gray-500">· {GAME_NAMES[w.game]}</span></span>
-                <span className="text-red-600">{w.misses} {w.misses === 1 ? "miss" : "misses"}</span>
+                <span>{w.label} <span className="text-muted-foreground">· {GAME_NAMES[w.game]}</span></span>
+                <span className="text-primary">{w.misses} {w.misses === 1 ? "miss" : "misses"}</span>
               </li>
             ))}
           </ul>
