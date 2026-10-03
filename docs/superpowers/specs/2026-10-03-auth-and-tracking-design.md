@@ -50,7 +50,7 @@ Index: `{ userId: 1, playedAt: -1 }`.
 Indexes: `{ userId: 1, game: 1 }` unique; `{ game: 1, bestTimedScore: -1 }` and `{ game: 1, bestScore: -1 }` for leaderboards.
 
 ### `weakSpots` (one per user, game and item)
-`userId`, `game`, `key`, `label`, `misses`, `attempts`, `lastMissAt`.
+`userId`, `game`, `key`, `label`, `misses`, `lastMissAt`. Games report only misses, so weak spots rank by miss count and recency.
 Index: `{ userId: 1, game: 1, key: 1 }` unique.
 
 Game ids: `time`, `artikel`, `zahlen`, `satzbau`, `verben`, `laden`.
@@ -60,7 +60,7 @@ Game ids: `time`, `artikel`, `zahlen`, `satzbau`, `verben`, `laden`.
 `lib/report-round.ts` exposes `reportRound(round)`. It POSTs to `/api/rounds` and silently does nothing
 for guests (the API returns 401) or on network failure; gameplay never waits on it.
 
-Payload: `{ game, mode, correct, total, xp, bestStreak, level, durationSec, tz, misses: [{ key, label, attempts? }] }`.
+Payload: `{ game, mode, correct, total, xp, bestStreak, level, durationSec, tz, misses: [{ key, label }] }`.
 `score` is `correct`.
 
 Each game calls it once when a round ends:
@@ -90,7 +90,7 @@ Only artikel, zahlen, satzbau, verben and laden send `misses`.
    - `timed` mode: `durationSec <= 65`.
    - `misses.length <= total - correct + 1`.
 4. Rate limit: at most 30 rounds per user per hour (count from `rounds`), otherwise 429.
-5. Writes: insert `rounds`; upsert `userStats`; upsert `weakSpots` (`$inc` misses, attempts); update the streak.
+5. Writes: insert `rounds`; upsert `userStats`; upsert `weakSpots` (`$inc` misses); update the streak.
 6. Returns `{ ok: true, streak, newBests: [...] }` so the results screen can say "New best!".
 
 Streak: compute today's date in `tz`; if `lastDay` is yesterday, `current += 1`; if today, unchanged;
@@ -99,7 +99,7 @@ otherwise reset to 1. `best = max(best, current)`.
 ## Pages
 
 - `/profile` (signed in): per-game stats table, recent rounds, current and best streak, weakest items
-  (top misses by miss rate, minimum 3 attempts), display name field and leaderboard opt-in toggle.
+  (most misses first), display name field and leaderboard opt-in toggle.
 - `/leaderboard`: tabs per game. artikel and zahlen rank by `bestTimedScore`; satzbau, verben and laden
   by `bestScore`. Top 20, only players with `leaderboard: true`, shown by `displayName`. Google name
   and email are never exposed. `time` has no board.
