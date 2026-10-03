@@ -33,9 +33,14 @@ export default function ZahlenGame() {
   const [timeLeft, setTimeLeft] = useState(TIMED_SECONDS);
   const [open, setOpen] = useState(false);
 
+  // The timed round ends on its own when the clock runs out.
+  const timeUp = screen === "playing" && mode === "timed" && timeLeft <= 0;
+  const view: Screen = timeUp ? "results" : screen;
+
   const level = levelFor(stats.correct);
 
   const start = (m: Mode) => {
+    setBestScore((b) => Math.max(b, stats.correct));
     setMode(m);
     setStats(EMPTY_STATS);
     setPicked(null);
@@ -43,11 +48,6 @@ export default function ZahlenGame() {
     setQuestion(nextQuestion(1));
     setScreen("playing");
   };
-
-  const finish = useCallback(() => {
-    setBestScore((b) => Math.max(b, stats.correct));
-    setScreen("results");
-  }, [stats.correct]);
 
   const answer = useCallback(
     (choice: string) => {
@@ -77,24 +77,20 @@ export default function ZahlenGame() {
 
   // Correct answers continue on their own; wrong ones wait so the solution can be read.
   useEffect(() => {
-    if (screen !== "playing" || !wasCorrect) return;
+    if (view !== "playing" || !wasCorrect) return;
     const t = setTimeout(next, AUTO_ADVANCE_MS);
     return () => clearTimeout(t);
-  }, [wasCorrect, screen, next]);
+  }, [wasCorrect, view, next]);
 
-  const timed = screen === "playing" && mode === "timed";
+  const timed = view === "playing" && mode === "timed";
   useEffect(() => {
     if (!timed) return;
     const t = setInterval(() => setTimeLeft((s) => s - 1), 1000);
     return () => clearInterval(t);
   }, [timed]);
-  useEffect(() => {
-    if (timed && timeLeft <= 0) finish();
-  }, [timed, timeLeft, finish]);
-
   // Keyboard: 1-4 to answer, Enter/Space to continue after a miss.
   useEffect(() => {
-    if (screen !== "playing") return;
+    if (view !== "playing") return;
     const onKey = (e: KeyboardEvent) => {
       if (open || !question) return;
       if (e.key >= "1" && e.key <= "4") {
@@ -107,7 +103,7 @@ export default function ZahlenGame() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [screen, open, question, picked, wasCorrect, answer, next]);
+  }, [view, open, question, picked, wasCorrect, answer, next]);
 
   const combo = comboLevel(stats.streak);
   const statItems: [string, string | number][] = [
@@ -137,7 +133,7 @@ export default function ZahlenGame() {
               <ul className="list-disc pl-5 space-y-2 text-left">
                 <li>Pick the German words for the number shown, or the digits for the German words. Keys <b>1–4</b> work too.</li>
                 <li>You level up every {CORRECT_PER_LEVEL} correct answers: 0–20, 21–100, larger numbers, prices, dates, then years.</li>
-                <li>After a miss, the right answer stays on screen until you press <b>Next</b> (or Enter).</li>
+                <li>After a miss, the right answer stays on view until you press <b>Next</b> (or Enter).</li>
                 <li>Each correct answer gives 10 XP, plus bonus XP from a streak of 3. <b>Timed</b> mode gives you {TIMED_SECONDS} seconds.</li>
               </ul>
             </div>
@@ -153,7 +149,7 @@ export default function ZahlenGame() {
     </Link>
   );
 
-  if (screen === "menu") {
+  if (view === "menu") {
     return (
       <div className="flex flex-col items-center gap-6 mt-16 relative px-4">
         {back}
@@ -165,13 +161,13 @@ export default function ZahlenGame() {
         <Button className="w-56" variant="secondary" onClick={() => start("timed")}>
           <Timer size={18} /> Timed ({TIMED_SECONDS}s)
         </Button>
-        {bestScore > 0 && <div className="text-sm text-gray-600">Best score this session: {bestScore}</div>}
+        {Math.max(bestScore, stats.correct) > 0 && <div className="text-sm text-gray-600">Best score this session: {Math.max(bestScore, stats.correct)}</div>}
         {infoDialog}
       </div>
     );
   }
 
-  if (screen === "results") {
+  if (view === "results") {
     return (
       <div className="flex flex-col items-center gap-6 mt-16 relative px-4">
         {back}
@@ -259,7 +255,7 @@ export default function ZahlenGame() {
           </Button>
         </>
       )}
-      <Button variant="ghost" size="sm" onClick={finish}>End round</Button>
+      <Button variant="ghost" size="sm" onClick={() => setScreen("results")}>End round</Button>
       {infoDialog}
     </div>
   );

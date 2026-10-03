@@ -43,6 +43,10 @@ export default function ArtikelGame() {
   const [open, setOpen] = useState(false);
   const deckRef = useRef<Noun[]>([]);
 
+  // The timed round ends on its own when the clock runs out.
+  const timeUp = screen === "playing" && mode === "timed" && timeLeft <= 0;
+  const view: Screen = timeUp ? "results" : screen;
+
   const drawRandom = (last?: Noun) => {
     const { noun, deck } = nextFromDeck(deckRef.current, NOUNS, last);
     deckRef.current = deck;
@@ -103,25 +107,21 @@ export default function ArtikelGame() {
 
   // Correct answers continue on their own; wrong ones wait so the correction can be read.
   useEffect(() => {
-    if (screen !== "playing" || !feedback?.correct) return;
+    if (view !== "playing" || !feedback?.correct) return;
     const t = setTimeout(next, AUTO_ADVANCE_MS);
     return () => clearTimeout(t);
-  }, [feedback, screen, next]);
+  }, [feedback, view, next]);
 
   // Timed mode countdown.
-  const timed = screen === "playing" && mode === "timed";
+  const timed = view === "playing" && mode === "timed";
   useEffect(() => {
     if (!timed) return;
     const t = setInterval(() => setTimeLeft((s) => s - 1), 1000);
     return () => clearInterval(t);
   }, [timed]);
-  useEffect(() => {
-    if (timed && timeLeft <= 0) setScreen("results");
-  }, [timed, timeLeft]);
-
   // Keyboard: 1/2/3 to answer, Enter/Space to continue after a miss.
   useEffect(() => {
-    if (screen !== "playing") return;
+    if (view !== "playing") return;
     const onKey = (e: KeyboardEvent) => {
       if (open) return;
       if (e.key >= "1" && e.key <= "3") answer(ARTICLES[Number(e.key) - 1]);
@@ -132,7 +132,7 @@ export default function ArtikelGame() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [screen, open, feedback, answer, next]);
+  }, [view, open, feedback, answer, next]);
 
   const combo = comboLevel(stats.streak);
 
@@ -154,7 +154,7 @@ export default function ArtikelGame() {
             <div>
               <ul className="list-disc pl-5 space-y-2 text-left">
                 <li>Pick the right article for the noun: <b>der</b>, <b>die</b> or <b>das</b>. Keys <b>1 / 2 / 3</b> work too.</li>
-                <li>Correct answers move on by themselves. After a miss, the right answer stays on screen until you press <b>Next</b> (or Enter).</li>
+                <li>Correct answers move on by themselves. After a miss, the right answer stays on view until you press <b>Next</b> (or Enter).</li>
                 <li>Each correct answer gives 10 XP. From a streak of 3 you also get bonus XP.</li>
                 <li><b>Timed</b> mode gives you {TIMED_SECONDS} seconds.</li>
                 <li>Missed words are saved for the session. Use <b>Practice mistakes</b> to replay them; a word leaves the list once you get it right.</li>
@@ -172,7 +172,7 @@ export default function ArtikelGame() {
     </Link>
   );
 
-  if (screen === "menu") {
+  if (view === "menu") {
     return (
       <div className="flex flex-col items-center gap-6 mt-16 relative px-4">
         {back}
@@ -189,7 +189,7 @@ export default function ArtikelGame() {
     );
   }
 
-  if (screen === "results") {
+  if (view === "results") {
     const cleared = mode === "mistakes" && mistakes.length === 0;
     return (
       <div className="flex flex-col items-center gap-6 mt-16 relative px-4">

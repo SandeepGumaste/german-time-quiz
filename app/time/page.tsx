@@ -22,12 +22,6 @@ const times: TimeQuestion[] = generateTimeJson() as TimeQuestion[];
 
 export default function TimeQuiz() {
   const [open, setOpen] = useState(false);
-  React.useEffect(() => {
-    if (!current) {
-      setCurrent(getRandomTime());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   // Helper to convert 'hh:mm Uhr' to descriptive German
   function convertDigitsToGerman(input: string): string {
     const match = input.match(/(\d{1,2}):(\d{2}) ?uhr/i);
@@ -43,6 +37,14 @@ export default function TimeQuiz() {
   const getRandomTime = () => {
     return times[Math.floor(Math.random() * times.length)];
   };
+  React.useEffect(() => {
+    if (!current) {
+      // Picked on the client after mount so server and client markup match.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCurrent(getRandomTime());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Remove useEffect that updates current question on answerType change
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState<null | boolean>(null);
