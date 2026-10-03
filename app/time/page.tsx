@@ -49,7 +49,6 @@ export default function TimeQuiz() {
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState<null | boolean>(null);
   const [listening, setListening] = useState(false);
-  const [voiceActive, setVoiceActive] = useState(false);
   const [voiceError, setVoiceError] = useState("");
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const recognitionRef = React.useRef<any>(null);
@@ -80,7 +79,6 @@ export default function TimeQuiz() {
     // recognition.maxAlternatives = 5;
     recognition.onstart = () => {
       setListening(true);
-      setVoiceActive(true);
     };
     recognition.onresult = (event: SpeechRecognitionResultEvent) => {
       // Concatenate all transcripts for continuous input (best alternative)
@@ -164,7 +162,6 @@ export default function TimeQuiz() {
       recognitionRef.current = null;
     }
     setListening(false);
-    setVoiceActive(false);
   };
 
   const checkAnswer = () => {
@@ -188,7 +185,6 @@ export default function TimeQuiz() {
     setAnswer("");
     setResult(null);
     setVoiceError("");
-    setVoiceActive(false);
   };
 
   const skipQuestion = () => {
@@ -197,7 +193,6 @@ export default function TimeQuiz() {
     setAnswer("");
     setResult(null);
     setVoiceError("");
-    setVoiceActive(false);
   };
 
   return (
@@ -322,7 +317,6 @@ export default function TimeQuiz() {
                   setAnswer("");
                   setResult(null);
                   setVoiceError("");
-                  setVoiceActive(false);
                 }}
               >
                 Try Again
