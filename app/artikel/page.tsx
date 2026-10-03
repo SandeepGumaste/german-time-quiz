@@ -19,6 +19,7 @@ import {
   nextFromDeck,
   xpForCorrect,
 } from "@/lib/artikel-game";
+import { StatsRow } from "@/components/stats-row";
 import { cn } from "@/lib/utils";
 
 type Mode = "practice" | "timed" | "mistakes";
@@ -194,7 +195,7 @@ export default function ArtikelGame() {
       <div className="flex flex-col items-center gap-6 mt-16 relative px-4">
         {back}
         <h1 className="text-2xl font-bold">{mode === "timed" ? "Time's up!" : cleared ? "All mistakes cleared!" : "Round over"}</h1>
-        <StatsRow stats={stats} />
+        <StatsRow items={statItems(stats)} />
         <div className="flex flex-col items-center gap-3">
           {mistakes.length > 0 && (
             <Button className="w-56" onClick={() => start("mistakes")}>
@@ -215,7 +216,7 @@ export default function ArtikelGame() {
     <div className="flex flex-col items-center gap-6 mt-16 relative px-4">
       {back}
       <h1 className="text-2xl font-bold">Der / Die / Das</h1>
-      <StatsRow stats={stats} />
+      <StatsRow items={statItems(stats)} />
       <div className="flex items-center gap-4 h-8">
         {mode === "timed" && (
           <span className={cn("flex items-center gap-1 font-mono text-lg", timeLeft <= 10 && "text-red-600")}>
@@ -289,22 +290,10 @@ export default function ArtikelGame() {
   );
 }
 
-function StatsRow({ stats }: { stats: Stats }) {
-  const items = [
-    ["Score", stats.correct],
-    ["Streak", stats.streak],
-    ["Best", stats.best],
-    ["Accuracy", `${accuracy(stats.correct, stats.total)}%`],
-    ["XP", stats.xp],
-  ];
-  return (
-    <div className="flex gap-4 sm:gap-6 text-center">
-      {items.map(([label, value]) => (
-        <div key={label}>
-          <div className="text-xl font-bold">{value}</div>
-          <div className="text-xs text-gray-600">{label}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
+const statItems = (stats: Stats): [string, string | number][] => [
+  ["Score", stats.correct],
+  ["Streak", stats.streak],
+  ["Best", stats.best],
+  ["Accuracy", `${accuracy(stats.correct, stats.total)}%`],
+  ["XP", stats.xp],
+];

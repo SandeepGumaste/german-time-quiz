@@ -3,6 +3,8 @@ import Link from "next/link";
 const games = [
   { href: "/time", title: "German Time", blurb: "Say the time in German, by voice." },
   { href: "/artikel", title: "Der / Die / Das", blurb: "Pick the right article. Streaks, combos, timed mode." },
+  { href: "/zahlen", title: "Numbers & Prices", blurb: "Numbers, prices, dates and years. Gets harder as you go." },
+  { href: "/satzbau", title: "Sentence Builder", blurb: "Arrange word tiles into correct German sentences." },
 ];
 
 export default function Home() {
