@@ -216,3 +216,23 @@ export function nextQuestion(level: number): NumberQuestion {
     default: return numberQuestion(type, reverse);
   }
 }
+
+// Rebuilds the German words from the digits a question showed, so the AI route can trust them.
+export function germanFor(type: RoundType, digits: string): string | null {
+  const int = (re: RegExp) => (re.test(digits) ? Number(digits.replace(/\./g, "")) : NaN);
+  switch (type) {
+    case "small": { const n = int(/^\d{1,2}$/); return n >= 0 && n <= 20 ? toGerman(n) : null; }
+    case "tens": { const n = int(/^\d{2,3}$/); return n >= 21 && n <= 100 ? toGerman(n) : null; }
+    case "large": { const n = int(/^\d{1,3}(\.\d{3})?$|^\d{3,4}$/); return n >= 101 && n <= 9999 ? toGerman(n) : null; }
+    case "year": { const n = int(/^\d{4}$/); return n >= 1900 && n <= 2099 ? yearToGerman(n) : null; }
+    case "price": {
+      const m = digits.match(/^€(\d{1,2}),(\d{2})$/);
+      return m && Number(m[1]) >= 1 ? priceToGerman(Number(m[1]), Number(m[2])) : null;
+    }
+    case "date": {
+      const m = digits.match(/^(\d{2})\.(\d{2})\.$/);
+      return m && Number(m[1]) >= 1 && Number(m[1]) <= 31 && Number(m[2]) >= 1 && Number(m[2]) <= 12 ? dateToGerman(Number(m[1]), Number(m[2])) : null;
+    }
+    default: return null;
+  }
+}

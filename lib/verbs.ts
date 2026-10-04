@@ -161,3 +161,15 @@ export function nextVerbQuestion(level: number): VerbQuestion {
     default: return perfektQuestion();
   }
 }
+
+// Confirms a (hint, answer) pair really exists in our verb tables, so the AI route can trust it.
+export function verbFact(hint: string, answer: string): { inf: string; tense: string } | null {
+  const [inf, tense] = hint.split(", ");
+  if (!inf || !tense) return null;
+  const tables: Record<string, Verb[]> = {
+    "Präsens": [...SEIN_HABEN, ...REGULAR, ...IRREGULAR],
+    "Präteritum": PAST,
+  };
+  if (tense === "Perfekt") return PERFEKT.some((p) => p[1] === inf && p[2] === answer) ? { inf, tense } : null;
+  return tables[tense]?.some((v) => v.inf === inf && v.forms.includes(answer)) ? { inf, tense } : null;
+}

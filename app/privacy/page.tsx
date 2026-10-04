@@ -45,6 +45,15 @@ export default function PrivacyPage() {
       <ul>
         <li>Google, for sign-in (<a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Google Privacy Policy</a>).</li>
         <li>MongoDB Atlas, where account and game data are stored.</li>
+        <li>
+          AI providers (Google Gemini, Groq and Cerebras), used for the optional &ldquo;Why?&rdquo; explanations. Only the quiz item (a word, verb form or sentence) and the answer
+          you picked are sent; never your name, email or account details. Explanations are cached so the same question is not sent twice.
+        </li>
+        <li>
+          A speech-to-text service provider, which turns your voice into text when a signed-in player answers by voice in the Time game. Only that short
+          recording is sent. We do not store the audio; we keep only a count of voice answers to enforce a daily limit. Players who are not signed in use
+          their browser&apos;s own speech recognition instead, which may send audio to the browser maker (for example Google in Chrome).
+        </li>
         <li>Vercel, which hosts the site and may keep standard server logs (such as IP address) for security and operations.</li>
       </ul>
       <p>These providers may process data on servers outside India. We do not sell your data or share it for advertising.</p>

@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { StatsRow } from "@/components/stats-row";
+import { ExplainButton } from "@/components/explain-button";
 import { RoundSaved } from "@/components/round-saved";
 import { useRoundReporter } from "@/lib/use-round-reporter";
 import type { Miss } from "@/lib/tracking/types";
@@ -250,6 +251,7 @@ export default function SatzbauGame() {
             )}
             {result && <Button className="w-40" onClick={next}>Next</Button>}
           </div>
+          {result && !result.correct && <ExplainButton key={sentence.id} request={{ game: "satzbau", id: sentence.id }} />}
         </>
       )}
       <Button variant="ghost" size="sm" onClick={() => setScreen("results")}>End round</Button>

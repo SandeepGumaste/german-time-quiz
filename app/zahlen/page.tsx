@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { StatsRow } from "@/components/stats-row";
+import { ExplainButton } from "@/components/explain-button";
 import { RoundSaved } from "@/components/round-saved";
 import { useRoundReporter } from "@/lib/use-round-reporter";
 import type { Miss } from "@/lib/tracking/types";
@@ -283,6 +284,12 @@ export default function ZahlenGame() {
           <Button className="w-40" disabled={picked === null || wasCorrect} onClick={next}>
             Next
           </Button>
+          {picked !== null && !wasCorrect && (
+            <ExplainButton
+              key={question.prompt + question.answer}
+              request={{ game: "zahlen", type: question.type, digits: question.reverse ? question.answer : question.prompt }}
+            />
+          )}
         </>
       )}
       <Button variant="ghost" size="sm" onClick={() => setScreen("results")}>End round</Button>

@@ -91,6 +91,35 @@ export function formatPrice(cents: number): { digits: string; german: string } {
   return { digits, german: c > 0 ? `${euro} ${toGerman(c)}` : euro };
 }
 
+// The correct sentence and article/plural notes for an order; shared by the game and the AI explanation route.
+export function describeOrder(lines: OrderLine[]) {
+  const phrases = lines.map(phraseWords);
+  // Display with commas: "A, B und C"
+  const texts = phrases.map((p) => p.join(" "));
+  const list = texts.length === 1 ? texts[0] : `${texts.slice(0, -1).join(", ")} und ${texts[texts.length - 1]}`;
+  const display = `Ich möchte ${list}, bitte.`;
+  const notes = lines.map(({ item, qty }) =>
+    qty === 1
+      ? `${item.gender} ${item.de} → ${ACCUSATIVE[item.gender]} ${item.de}`
+      : `${item.gender} ${item.de} → ${toGerman(qty)} ${item.plural} (plural: ${item.plural})`
+  );
+  return { phrases, display, notes };
+}
+
+// Validates an order sent by the browser (1-3 distinct shop items, plurals only where they exist).
+export function orderFromClient(raw: unknown): OrderLine[] | null {
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > 3) return null;
+  const lines: OrderLine[] = [];
+  for (const r of raw) {
+    const item = ITEMS.find((i) => i.de === r?.de);
+    const qty = r?.qty;
+    if (!item || !Number.isInteger(qty) || qty < 1 || qty > 9 || (qty > 1 && !item.plural)) return null;
+    if (lines.some((l) => l.item === item)) return null;
+    lines.push({ item, qty });
+  }
+  return lines;
+}
+
 export function buildOrder(level: number): Order {
   const count = level <= 2 ? 1 : level === 3 ? 2 : 3;
   const items: ShopItem[] = [];
@@ -103,13 +132,8 @@ export function buildOrder(level: number): Order {
     lines.push({ item, qty });
   }
 
-  const phrases = lines.map(phraseWords);
+  const { phrases, display, notes } = describeOrder(lines);
   const variants = permutations(phrases).map((p) => ["Ich", "möchte", ...joinWords(p), "bitte"]);
-
-  // Display with commas: "A, B und C"
-  const texts = phrases.map((p) => p.join(" "));
-  const list = texts.length === 1 ? texts[0] : `${texts.slice(0, -1).join(", ")} und ${texts[texts.length - 1]}`;
-  const display = `Ich möchte ${list}, bitte.`;
 
   const needed = variants[0];
   const extra: string[] = [];
@@ -118,12 +142,6 @@ export function buildOrder(level: number): Order {
     if (!needed.includes(wrong) && !extra.includes(wrong)) extra.push(wrong);
   }
   const tiles = shuffle([...needed, ...extra.slice(0, 3)]).map((text, id) => ({ id, text }));
-
-  const notes = lines.map(({ item, qty }) =>
-    qty === 1
-      ? `${item.gender} ${item.de} → ${ACCUSATIVE[item.gender]} ${item.de}`
-      : `${item.gender} ${item.de} → ${toGerman(qty)} ${item.plural} (plural: ${item.plural})`
-  );
 
   return { lines, tiles, variants, display, notes, totalCents: lines.reduce((s, l) => s + l.item.cents * l.qty, 0) };
 }

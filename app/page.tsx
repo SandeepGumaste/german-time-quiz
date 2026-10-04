@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { maxCallsPerDay } from "@/lib/ai/limits";
+import { AiSection } from "@/components/ai-section";
 import { GameVault } from "@/components/game-vault";
 import { RandomGameButton } from "@/components/random-game-button";
 
@@ -85,48 +86,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative border-[3px] border-ink bg-sidebar arcade-shadow">
-        <div className="flex items-center justify-between border-b-[3px] border-ink bg-primary px-4 py-1 font-mono text-xs font-bold text-primary-foreground">
-          <span className="flex items-center gap-2"><span className="arcade-blink">★</span> FEATURED GAME • 01</span>
-          <span className="border border-ink bg-ink px-2 py-0.5 text-[10px] text-background">UHRZEIT MEISTER</span>
-        </div>
-        <div className="grid grid-cols-1 items-center gap-6 p-4 lg:grid-cols-12 lg:p-6">
-          <div className="flex flex-col items-center gap-3 border-[3px] border-ink bg-card p-4 text-center arcade-shadow-sm lg:col-span-5">
-            <div className="flex w-full items-center justify-between border-b border-ink/20 pb-1 font-mono text-[10px] font-bold text-muted-foreground">
-              <span>ANALOG READOUT</span>
-              <span className="border border-ink bg-success px-1 text-white">🎤 VOICE READY</span>
-            </div>
-            <div className="relative my-1 flex size-36 items-center justify-center border-[3px] border-ink bg-muted font-mono text-[10px] font-bold">
-              <span className="absolute top-1">12</span><span className="absolute bottom-1">6</span>
-              <span className="absolute left-1.5">9</span><span className="absolute right-1.5">3</span>
-              <div className="absolute h-9 w-2 origin-bottom -translate-y-[16px] -rotate-45 border border-ink bg-primary" />
-              <div className="absolute h-14 w-2 origin-top translate-y-[2px] bg-ink" />
-              <div className="z-10 size-4 border-2 border-ink bg-secondary" />
-            </div>
-            <div className="flex w-full flex-col items-center gap-1 border-2 border-ink bg-accent p-2">
-              <div className="font-mono text-lg font-bold tracking-wide text-primary">14:30 » HALB DREI «</div>
-              <div className="flex h-4 items-center gap-1">
-                {[["h-2", "bg-primary"], ["h-4", "bg-primary"], ["h-3", "bg-secondary"], ["h-4", "bg-success"], ["h-2", "bg-primary"], ["h-3", "bg-secondary"], ["h-4", "bg-primary"]].map(([h, c], i) => (
-                  <span key={i} className={`w-1.5 ${h} ${c}`} />
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-3 lg:col-span-7">
-            <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] font-bold">
-              <span className="border border-ink bg-success px-2 py-0.5 text-white">[A1-A2]</span>
-              <span className="border border-ink bg-accent px-2 py-0.5">[SPEAKING]</span>
-              <span className="border border-ink bg-secondary px-2 py-0.5 text-secondary-foreground">[COMBO]</span>
-            </div>
-            <h2 className="text-2xl font-bold">German Time (Die Uhrzeit)</h2>
-            <p className="text-muted-foreground">Say the time in German by voice. Uses your browser&apos;s speech recognition, so pick a Chromium-based browser for the best results.</p>
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <Link href="/time" className={`${btn} bg-primary text-primary-foreground`}>🎤 ▶ Play German Time</Link>
-              <span className="font-mono text-[10px] text-muted-foreground">Mic permission is requested when you start</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <AiSection dailyLimit={maxCallsPerDay()} />
 
       <GameVault />
     </main>

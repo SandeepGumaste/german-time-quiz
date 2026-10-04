@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { StatsRow } from "@/components/stats-row";
+import { ExplainButton } from "@/components/explain-button";
 import { RoundSaved } from "@/components/round-saved";
 import { useRoundReporter } from "@/lib/use-round-reporter";
 import type { Miss } from "@/lib/tracking/types";
@@ -256,6 +257,9 @@ export default function GermanShop() {
             )}
             {result && <Button className="w-40" onClick={next}>Next customer</Button>}
           </div>
+          {result && !result.correct && (
+            <ExplainButton key={order.display} request={{ game: "laden", items: order.lines.map(({ item, qty }) => ({ de: item.de, qty })) }} />
+          )}
         </>
       )}
       <Button variant="ghost" size="sm" onClick={() => setScreen("results")}>Leave shop</Button>

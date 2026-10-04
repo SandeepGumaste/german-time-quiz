@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { StatsRow } from "@/components/stats-row";
+import { ExplainButton } from "@/components/explain-button";
 import { RoundSaved } from "@/components/round-saved";
 import { useRoundReporter } from "@/lib/use-round-reporter";
 import type { Miss } from "@/lib/tracking/types";
@@ -42,6 +43,7 @@ export default function VerbRunner() {
   const [lives, setLives] = useState(START_LIVES);
   const [open, setOpen] = useState(false);
   const [roundMisses, setRoundMisses] = useState<Miss[]>([]);
+  const [missed, setMissed] = useState<VerbQuestion[]>([]);
 
   const level = verbLevelFor(stats.correct);
   const correct = picked !== null && picked === question?.answer;
@@ -64,6 +66,7 @@ export default function VerbRunner() {
   const start = () => {
     setStats(EMPTY_STATS);
     setRoundMisses([]);
+    setMissed([]);
     setLives(START_LIVES);
     setPicked(null);
     setQuestion(nextVerbQuestion(1));
@@ -78,6 +81,7 @@ export default function VerbRunner() {
       if (!ok) {
         setLives((l) => l - 1);
         setRoundMisses((m) => [...m, { key: question.hint, label: question.hint }]);
+        setMissed((m) => [...m, question]);
       }
       setStats((s) => {
         const streak = ok ? s.streak + 1 : 0;
@@ -193,6 +197,19 @@ export default function VerbRunner() {
         <StatsRow items={statItems} />
         <RoundSaved saved={saved} />
         <div className="text-muted-foreground">Reached level {level}: {VERB_LEVEL_NAMES[level]}</div>
+        {missed.length > 0 && (
+          <section className="w-full max-w-xl">
+            <h2 className="font-semibold mb-2">Your misses</h2>
+            <ul className="space-y-3 text-sm">
+              {missed.slice(-5).map((q) => (
+                <li key={q.id} className="border-t pt-2 flex flex-col items-start gap-2">
+                  <span>{q.before} <b>{q.answer}</b>{q.after} <span className="text-muted-foreground">({q.hint})</span></span>
+                  <ExplainButton request={{ game: "verben", hint: q.hint, answer: q.answer, before: q.before, after: q.after }} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <div className="flex flex-col items-center gap-3">
           <Button className="w-56" onClick={start}>Play again</Button>
           <Button className="w-56" variant="outline" onClick={() => setScreen("menu")}>Menu</Button>

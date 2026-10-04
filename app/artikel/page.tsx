@@ -20,6 +20,7 @@ import {
   xpForCorrect,
 } from "@/lib/artikel-game";
 import { StatsRow } from "@/components/stats-row";
+import { ExplainButton } from "@/components/explain-button";
 import { RoundSaved } from "@/components/round-saved";
 import { useRoundReporter } from "@/lib/use-round-reporter";
 import type { Miss } from "@/lib/tracking/types";
@@ -146,7 +147,7 @@ export default function ArtikelGame() {
     const onKey = (e: KeyboardEvent) => {
       if (open) return;
       if (e.key >= "1" && e.key <= "3") answer(ARTICLES[Number(e.key) - 1]);
-      else if ((e.key === "Enter" || e.key === " ") && feedback && !feedback.correct) {
+      else if ((e.key === "Enter" || e.key === " ") && feedback && !feedback.correct && !(e.target as HTMLElement).closest("button, [role=dialog]")) {
         e.preventDefault();
         next();
       }
@@ -304,6 +305,9 @@ export default function ArtikelGame() {
           <Button className="w-40" disabled={!feedback || feedback.correct} onClick={next}>
             Next
           </Button>
+          {feedback && !feedback.correct && (
+            <ExplainButton key={current.de} request={{ game: "artikel", noun: current.de, picked: feedback.picked }} />
+          )}
         </>
       )}
       <Button variant="ghost" size="sm" onClick={() => setScreen("results")}>End round</Button>
