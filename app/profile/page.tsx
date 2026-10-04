@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { DeleteAccount } from "@/components/delete-account";
 import { ProfileSettings } from "@/components/profile-settings";
 import { getDb } from "@/lib/mongodb";
 import { GAME_HREFS, GAME_NAMES } from "@/lib/tracking/games";
@@ -86,6 +87,11 @@ export default async function ProfilePage() {
       <section className="w-full max-w-2xl">
         <h2 className="font-semibold mb-2">Settings</h2>
         <ProfileSettings displayName={profile.displayName} leaderboard={profile.leaderboard} />
+      </section>
+
+      <section className="w-full max-w-2xl">
+        <h2 className="font-semibold mb-2">Delete account</h2>
+        <DeleteAccount />
       </section>
     </div>
   );

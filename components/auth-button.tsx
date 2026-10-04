@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
+import { SiteFooter } from "@/components/site-footer";
 import { Button } from "@/components/ui/button";
 
 function AuthMenu() {
@@ -43,6 +44,7 @@ export function AuthHeader({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       {children}
+      <SiteFooter />
     </SessionProvider>
   );
 }
