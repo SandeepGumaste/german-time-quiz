@@ -12,15 +12,20 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const isDev = process.env.NODE_ENV === "development";
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id || !ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ error: "Sign in to get explanations" }, { status: 401 });
-  }
-  const prompt = buildExplainPrompt(await req.json().catch(() => null));
+  const body = await req.json().catch(() => null);
+  const prompt = buildExplainPrompt(body);
   if (!prompt) return NextResponse.json({ error: "Invalid request" }, { status: 422 });
 
   const db = await getDb();
   const cached = isDev ? null : await db.collection("explanations").findOne({ key: prompt.key });
+
+  // `peek` only reports whether a saved explanation exists, so the button can show it as free before it is clicked.
+  if (body.peek === true) return NextResponse.json({ cached: Boolean(cached) });
+
+  const session = await auth();
+  if (!session?.user?.id || !ObjectId.isValid(session.user.id)) {
+    return NextResponse.json({ error: "Sign in to get explanations" }, { status: 401 });
+  }
   if (cached) return NextResponse.json({ text: cached.text as string, cached: true });
 
   // Only fresh model calls count against the limit, since free provider quotas are shared by all players.

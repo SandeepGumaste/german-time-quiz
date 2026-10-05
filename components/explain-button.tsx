@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,37 @@ type Props = { request: ExplainRequest };
 export function ExplainButton({ request }: Props) {
   const { data: session, status: authStatus } = useSession();
   const [signInOpen, setSignInOpen] = useState(false);
-  const [state, setState] = useState<{ status: "idle" | "loading" | "error"; text?: string; error?: string }>({ status: "idle" });
+  const [state, setState] = useState<{ status: "idle" | "loading" | "error"; text?: string; error?: string; free?: boolean }>({ status: "idle" });
+  const [free, setFree] = useState(false); // another player already asked, so this one costs nothing
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/explain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...request, peek: true }),
+    })
+      .then((r) => r.json())
+      .then((d) => !cancelled && setFree(d.cached === true))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // The button is remounted per question, so the request is fixed for its lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (state.text) {
-    return <p className="max-w-sm text-center text-sm">{state.text}</p>;
+    return (
+      <div className="flex max-w-sm flex-col items-center gap-1 text-center">
+        <p className="text-sm">{state.text}</p>
+        {state.free && (
+          <span className="border border-ink bg-success-soft px-1.5 font-mono text-[10px] font-bold uppercase text-success">
+            Free AI explanation · not counted against your daily limit
+          </span>
+        )}
+      </div>
+    );
   }
   const ask = async () => {
     if (authStatus !== "loading" && !session?.user) {
@@ -31,7 +58,7 @@ export function ExplainButton({ request }: Props) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.text) throw new Error(data.error ?? "Could not get an explanation.");
-      setState({ status: "idle", text: data.text });
+      setState({ status: "idle", text: data.text, free: data.cached === true });
     } catch (e) {
       setState({ status: "error", error: e instanceof Error ? e.message : "Could not get an explanation." });
     }
@@ -40,6 +67,9 @@ export function ExplainButton({ request }: Props) {
     <div className="flex flex-col items-center gap-1">
       <Button variant="outline" size="sm" onClick={ask} disabled={state.status === "loading"}>
         <Sparkles size={14} /> {state.status === "loading" ? "Thinking…" : "Why?"}
+        {free && state.status !== "loading" && (
+          <span className="border border-ink bg-success px-1 font-mono text-[10px] font-bold uppercase text-white">Free</span>
+        )}
       </Button>
       {state.status === "error" && <span className="text-sm text-primary">{state.error}</span>}
       <Dialog open={signInOpen} onOpenChange={setSignInOpen}>

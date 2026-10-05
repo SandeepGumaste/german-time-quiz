@@ -239,127 +239,140 @@ export default function TimeQuiz() {
         <div className="text-lg">Loading...</div>
       ) : (
         <>
-          <div className="text-lg">
-            What is <span className="font-mono">{current.hhmm}</span> in German?
-          </div>
-
-          <input
-            className="border-2 border-ink rounded px-3 py-2 text-lg bg-muted cursor-not-allowed opacity-60"
-            type="text"
-            placeholder="Answer by voice only"
-            value={answer}
-            disabled
-            readOnly
-            tabIndex={-1}
-            aria-disabled="true"
-          />
-                    {!listening && (
-            <Button
-              className="bg-success text-white flex items-center gap-2"
-              onClick={handleVoice}
-              disabled={listening || transcribing || result !== null}
-            >
-              <Mic size={20} />
-              {transcribing ? "Transcribing…" : "Answer by Voice"}
-            </Button>
-          )}
-        {listening && (
-            <Button
-              variant="destructive"
-              onClick={handleStopVoice}
-              className="flex items-center gap-2"
-            >
-              <MicOff size={20} />
-              Stop
-            </Button>
-          )}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <button
-            type="button"
-            aria-label="How to use"
-            className="fixed bottom-6 right-6 z-50 bg-primary border-[3px] border-ink rounded shadow-arcade p-3 hover:bg-primary/90 active:translate-x-1 active:translate-y-1 active:shadow-none"
-            onClick={() => setOpen(true)}
-          >
-            <Info size={28} className="text-white" />
-          </button>
-        </DialogTrigger>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>How to use the German Time Quiz</DialogTitle>
-            <DialogDescription asChild>
-              <div>
-                <ul className="list-disc pl-5 space-y-2 text-left">
-                  <li>Type your answer in German or use the green <Mic className="inline" size={18} /> <b>Answer by Voice</b> button.</li>
-                  <li>Click <b>Check Answer</b> to see if your answer is correct.</li>
-                  <li>If you don&apos;t know the answer, click <b>Skip</b> to move to the next question (this will count as skipped).</li>
-                  <li>After checking your answer, click <b>Next Question</b> to continue.</li>
-                  <li>Your <b>Correct</b>, <b>Wrong</b>, and <b>Skipped</b> scores are shown at the top.</li>
-                  <li>Use the <MicOff className="inline" size={18} /> <b>Stop</b> button to stop voice input.</li>
-                </ul>
+          <div className="grid w-full max-w-4xl grid-cols-1 items-start gap-8 px-4 lg:grid-cols-2">
+            {/* Question and voice controls */}
+            <div className="flex flex-col items-center gap-6">
+              <div className="text-lg">
+                What is <span className="font-mono">{current.hhmm}</span> in German?
               </div>
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-          <div className="flex gap-4">
-            <Button
-              variant="default"
-              onClick={checkAnswer}
-              disabled={result !== null}
-            >
-              Check Answer
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={skipQuestion}
-              disabled={listening || result !== null}
-            >
-              Skip
-            </Button>
-          </div>
 
-          {result !== null && (
-            <div className={`text-lg font-semibold ${result ? "text-success" : "text-primary"}`}>
-              {result ? "Correct!" : "Incorrect. The correct answers are:"}
-              <>
-                <div className="text-base font-normal mt-2 mb-1">
-                  {current.german.length} possible correct ways:
+              <input
+                className="border-2 border-ink rounded px-3 py-2 text-lg bg-muted cursor-not-allowed opacity-60"
+                type="text"
+                placeholder="Answer by voice only"
+                value={answer}
+                disabled
+                readOnly
+                tabIndex={-1}
+                aria-disabled="true"
+              />
+                        {!listening && (
+                <Button
+                  className="bg-success text-white flex items-center gap-2"
+                  onClick={handleVoice}
+                  disabled={listening || transcribing || result !== null}
+                >
+                  <Mic size={20} />
+                  {transcribing ? "Transcribing…" : "Answer by Voice"}
+                </Button>
+              )}
+            {listening && (
+                <Button
+                  variant="destructive"
+                  onClick={handleStopVoice}
+                  className="flex items-center gap-2"
+                >
+                  <MicOff size={20} />
+                  Stop
+                </Button>
+              )}
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                aria-label="How to use"
+                className="fixed bottom-6 right-6 z-50 bg-primary border-[3px] border-ink rounded shadow-arcade p-3 hover:bg-primary/90 active:translate-x-1 active:translate-y-1 active:shadow-none"
+                onClick={() => setOpen(true)}
+              >
+                <Info size={28} className="text-white" />
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>How to use the German Time Quiz</DialogTitle>
+                <DialogDescription asChild>
+                  <div>
+                    <ul className="list-disc pl-5 space-y-2 text-left">
+                      <li>Type your answer in German or use the green <Mic className="inline" size={18} /> <b>Answer by Voice</b> button.</li>
+                      <li>Click <b>Check Answer</b> to see if your answer is correct.</li>
+                      <li>If you don&apos;t know the answer, click <b>Skip</b> to move to the next question (this will count as skipped).</li>
+                      <li>After checking your answer, click <b>Next Question</b> to continue.</li>
+                      <li>Your <b>Correct</b>, <b>Wrong</b>, and <b>Skipped</b> scores are shown at the top.</li>
+                      <li>Use the <MicOff className="inline" size={18} /> <b>Stop</b> button to stop voice input.</li>
+                    </ul>
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+              <div className="flex gap-4">
+                <Button
+                  variant="default"
+                  onClick={checkAnswer}
+                  disabled={result !== null}
+                >
+                  Check Answer
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={skipQuestion}
+                  disabled={listening || result !== null}
+                >
+                  Skip
+                </Button>
+              </div>
+            {voiceError && (
+              <div className="mt-2 text-primary border-2 border-ink bg-danger-soft rounded px-4 py-2 text-sm">
+                {voiceError}
+              </div>
+            )}
+            </div>
+
+            {/* Result, correct answers and AI explanation sit beside the question on wide screens */}
+            <div className={`flex-col items-center gap-4 lg:flex lg:min-h-[22rem] lg:border-[3px] lg:border-ink lg:bg-card lg:p-5 lg:shadow-arcade-sm ${result === null ? "hidden" : "flex"}`}>
+              {result === null && (
+                <p className="my-auto text-center text-sm text-muted-foreground">
+                  Check your answer and the correct ways to say it, plus an AI explanation, will show up here.
+                </p>
+              )}
+              {result !== null && (
+                <div className={`text-lg font-semibold ${result ? "text-success" : "text-primary"}`}>
+                  {result ? "Correct!" : "Incorrect. The correct answers are:"}
+                  <>
+                    <div className="text-base font-normal mt-2 mb-1">
+                      {current.german.length} possible correct ways:
+                    </div>
+                    <ul className="list-disc pl-5">
+                      {current.german.map((form, idx) => (
+                        <li key={idx}>{form}</li>
+                      ))}
+                    </ul>
+                  </>
                 </div>
-                <ul className="list-disc pl-5">
-                  {current.german.map((form, idx) => (
-                    <li key={idx}>{form}</li>
-                  ))}
-                </ul>
-              </>
+              )}
+              {(result === true || result === false) && (
+                <div className="flex gap-4 mt-4">
+                  <Button
+                    variant="default"
+                    onClick={nextQuestion}
+                  >
+                    Next Question
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setAnswer("");
+                      setResult(null);
+                      setVoiceError("");
+                    }}
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              )}
+              {result === false && <ExplainButton key={current.hhmm} request={{ game: "time", hhmm: current.hhmm }} />}
             </div>
-          )}
-          {(result === true || result === false) && (
-            <div className="flex gap-4 mt-4">
-              <Button
-                variant="default"
-                onClick={nextQuestion}
-              >
-                Next Question
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setAnswer("");
-                  setResult(null);
-                  setVoiceError("");
-                }}
-              >
-                Try Again
-              </Button>
-            </div>
-          )}
-          {result === false && <ExplainButton key={current.hhmm} request={{ game: "time", hhmm: current.hhmm }} />}
-        {voiceError && (
-          <div className="mt-2 text-primary border-2 border-ink bg-danger-soft rounded px-4 py-2 text-sm">
-            {voiceError}
           </div>
-        )}
         </>
       )}
     </div>
